@@ -1,0 +1,15 @@
+runtime: nodejs8
+# login: required
+
+# what follows will be optional in the future:
+threadsafe: true
+handlers:
+- url: /.*
+  script: server.js
+skip_files:
+  - ^(.*/)?#.*#$
+  - ^(.*/)?.*~$
+  - ^(.*/)?.*\.py[co]$
+  - ^(.*/)?.*/RCS/.*$
+  - ^(.*/)?\..*$
+  - ^.*node_modules(/.*)?
