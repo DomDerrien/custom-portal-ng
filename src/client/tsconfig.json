@@ -1,0 +1,17 @@
+{
+    "extends": "../../tsconfig",
+    "compilerOptions": {
+        "baseUrl": "../../",
+        "module": "esnext",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "rootDir": "./",
+        "outDir": "../../dist/client"
+    },
+    "include": [
+        "./*.ts",
+        "../typings.d.ts"
+    ]
+}
