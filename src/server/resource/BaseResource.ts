@@ -79,7 +79,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
             let entity: Model = Object.assign(this.service.modelInstance, request.body);
             this.service.create(entity)
                 .then((id: number): void => {
-                    response.status(201).contentType('text/plain').location(request.originalUrl + '/' + id).send(id); // HTTP status: CREATED
+                    response.contentType('text/plain').location(request.originalUrl + '/' + id).sendStatus(201); // HTTP status: CREATED
                 })
                 .catch((error: Error): void => {
                     console.log('BaseResource.create() failed with:\n', error)
@@ -110,7 +110,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
         return (request: express.Request, response: express.Response): void => {
             this.service.delete(Number(request.params.id))
                 .then((): void => {
-                    response.status(200); // HTTP status: OK
+                    response.sendStatus(200); // HTTP status: OK
                 })
                 .catch((error: Error): void => {
                     console.log('BaseResource.delete() failed with:\n', error)

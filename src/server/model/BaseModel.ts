@@ -64,5 +64,5 @@ export class BaseModel {
         }
 
         return updated;
-    };
+    }
 }

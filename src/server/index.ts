@@ -70,6 +70,22 @@ class Server {
     }
 
     private addClientRoutes() {
+        this.expressApp.use(this.expressRouter().get('/node_modules/*', (request: express.Request, response: express.Response): void => {
+            const url: string = request.url;
+            const extension: string = url.substring(url.lastIndexOf('.') + 1);
+            switch (extension) {
+                case 'js': response.set('Content-Type', 'application/javascript'); break;
+                case 'map': response.set('Content-Type', 'application/octet-stream'); break;
+                default: console.log('******* Unsupported extension', extension, 'for', url);
+            }
+            const content: string = this.fsAccess.readFileSync('.' + url).toString('utf8');
+            // TODO:
+            // 1 compute the url without the current filename
+            // 2 compute a prefix with the short url appended with '/node_modules/'
+            // 3 while there's a match to /import '[^.\/].+?';/
+            // 3.1 insert the computed prefix before the module name to import
+            response.send(content);
+        }));
         this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {
             response.set('Content-Type', 'text/html');
             response.send(this.clientMainPage);

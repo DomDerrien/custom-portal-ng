@@ -1,4 +1,4 @@
-import { BaseModel as Parent } from './BaseModel';
+import { BaseModel as Parent } from './BaseModel.js';
 
 export class User extends Parent {
     // Factory method

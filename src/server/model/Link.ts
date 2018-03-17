@@ -1,4 +1,4 @@
-import { BaseModel as Parent } from './BaseModel';
+import { BaseModel as Parent } from './BaseModel.js';
 
 export class Link extends Parent {
     // Factory method

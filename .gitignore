@@ -3,5 +3,7 @@
 _
 dist
 node_modules
+src/client/model
 package-lock.json
 yarn.lock
+yarn-error.log

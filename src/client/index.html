@@ -7,14 +7,33 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Custom Portal NG</title>
 
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,300,300italic,400italic,500,500italic,700,700italic"
+        crossorigin="anonymous">
+
+    <script src="/node_modules/web-animations-js/web-animations-next-lite.min.js"></script>
+    <!--script src="/node_modules/@webcomponents/webcomponentsjs/webcomponents-lite.js"></script-->
     <script type="module">
-        import { blagoo } from './shell.js';
-        blagoo();
+        import './shell.js';
     </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', 'Noto', sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            background-color: #eeeeee;
+        }
+    </style>
 </head>
 
 <body>
-    <p>Test ;)</p>
+    <portal-shell></portal-shell>
 </body>
 
 </html>

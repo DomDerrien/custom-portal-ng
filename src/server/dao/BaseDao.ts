@@ -74,7 +74,7 @@ export class BaseDao<T extends Model> {
     }
 
     public async get(id: number, selector?: string): Promise<T> {
-        return this.store.get(this.store.key([this.modelName, id])).then((result: object) => this.prepareModelInstance(result));
+        return this.store.get(this.store.key([this.modelName, id])).then((result: object) => this.prepareModelInstance(result[0]));
     }
 
     private prepareStandardQuery(filters: { [key: string]: string }): Query {
@@ -149,7 +149,17 @@ export class BaseDao<T extends Model> {
                 throw new Error(`Entity ${this.modelName} not created, conflict detected...`);
             }
             const key: DatastoreKey = mutationResults[0].key;
-            return Number(key.id);
+            if (key.id) {
+                return Number(key.id);
+            }
+            const pathElement: { idType: 'id' | 'name', id: number, kind: string } = <any>key.path[0];
+            if (pathElement.idType !== 'id') {
+                throw new Error(`Entity ${this.modelName} just created is not identified with 'id', with '${pathElement.idType}' instead...`);
+            }
+            if (pathElement.kind !== this.modelName) {
+                throw new Error(`Entity ${this.modelName} just created is identified with first path element not with the '${this.modelName}' kind, with '${pathElement.kind}' instead...`);
+            }
+            return Number(pathElement.id);
         });
     }
 
@@ -213,5 +223,4 @@ export class BaseDao<T extends Model> {
             }
         });
     }
-
 }

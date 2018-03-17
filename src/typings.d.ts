@@ -23,6 +23,15 @@ interface FileSystemAccess {
     writeFileSync(path: string, data: any, options?: any): void;
 }
 
+interface ExtendableEvent extends Event {
+    waitUntil(Promise): void;
+}
+
+interface FetchEvent extends Event {
+    request: RequestInfo;
+    respondWith(Promise): void;
+}
+
 interface IFrameElement extends HTMLElement {
     src: string;
 }
@@ -67,9 +76,14 @@ interface PaperToastElement extends HTMLElement {
 }
 
 interface IronFormElement extends HTMLElement {
-    submit(): void;
+    headers: object;
+    withCredentials: boolean;
+    submit(event?: Event): void;
+    reset(event?: Event): void;
+    validate(): boolean;
 }
 interface IronAjaxElement extends HTMLElement {
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     url: string;
 }
 
