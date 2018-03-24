@@ -1,8 +1,10 @@
-import { Element as PolymerElement } from '../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '../../node_modules/@polymer/polymer/polymer-element.js';
 
 import './widgets/category.js';
 import { tmpl } from './shell.tmpl.js';
+import { User } from './model/User.js';
 import { Category as Entity } from './model/Category.js';
+import { setupAuth, getLoggedUser } from './auth.js';
 
 export let appShell: Shell;
 
@@ -18,7 +20,7 @@ export class Shell extends PolymerElement {
     static get properties(): { [key: string]: string | object } {
         return {
             sortBy: String,
-            entities: Object,
+            entityIds: Object,
             entityName: String,
             baseRepoUrl: String
         };
@@ -29,13 +31,14 @@ export class Shell extends PolymerElement {
     private sortBy: string = '+title'; // Default attribute for sorting
     private readonly baseRepoUrl: string = '/api/v1/';
     private readonly entityName: string = 'Category';
-    private entities: Array<Entity>;
+    private entityIds: Array<number>;
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     constructor() {
         super();
         appShell = this;
+        setupAuth(this);
     }
 
     connectedCallback(): void {
@@ -71,14 +74,19 @@ export class Shell extends PolymerElement {
                 }],
                 [this.$.remote, 'response', (event: IronAjaxEvent): void => {
                     // TODO: adapt to process only identifiers when the request gets the entity identifiers only
-                    let entities: Array<Entity> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                    this.entities = entities;
-                    if (entities.length === 0) {
+                    let entityIds: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
+                    this.entityIds = entityIds;
+                    if (entityIds.length === 0) {
                         appShell.showToastFeedback(`No ${this.entityName} data retrieved!`);
                     }
                 }],
-                [this.$.remote, 'error', (event: MouseEvent): void => {
-                    appShell.showToastFeedback(`Attempt to get ${this.entityName} record from ${this.baseRepoUrl + this.entityName} failed!`, 0);
+                [this.$.remote, 'error', (event: IronAjaxEvent): void => {
+                    if (event.detail.request.status === 401) {
+                        appShell.showDialogFeedback('Login required!');
+                    }
+                    else {
+                        appShell.showToastFeedback(`Attempt to get ${this.entityName} record from ${this.baseRepoUrl + this.entityName} failed!`, 0);
+                    }
                     (<PaperDialogElement>this.$.addEntityDlg).close();
                 }],
             ];
@@ -100,13 +108,16 @@ export class Shell extends PolymerElement {
     ready(): void {
         super.ready();
 
-        (<IronFormElement>this.$.addEntityForm).withCredentials = true;
-        this.refresh();
+        getLoggedUser().then((loggedUser: User): void => {
+            (<IronFormElement>this.$.addEntityForm).withCredentials = true;
+            this.refresh();
+        });
     }
 
     refresh() {
         // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
+        ajaxElement.headers['x-ids-only'] = true;
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
         ajaxElement.url = this.baseRepoUrl + this.entityName;

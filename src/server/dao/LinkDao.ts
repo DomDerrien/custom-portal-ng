@@ -1,7 +1,7 @@
 import { Link as Model } from '../model/Link';
-import { BaseDao } from './BaseDao';
+import { GoogleDatastoreDao } from './GoogleDatastoreDao';
 
-export class LinkDao extends BaseDao<Model> {
+export class LinkDao extends GoogleDatastoreDao<Model> {
     private static instance: LinkDao;
 
     // Factory method

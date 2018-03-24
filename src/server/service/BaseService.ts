@@ -1,5 +1,7 @@
 import { BaseModel as Model } from '../model/BaseModel';
-import { BaseDao as DAO } from '../dao/BaseDao';
+import { BaseDao as DAO, QueryOptions } from '../dao/BaseDao';
+import { User } from '../model/User';
+import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
 export class BaseService<T extends DAO<Model>> {
     protected dao: DAO<Model>;
@@ -23,23 +25,54 @@ export class BaseService<T extends DAO<Model>> {
         return this.dao.modelInstance;
     }
 
-    public async select(params: { [key: string]: string }): Promise<Model[]> {
-        return this.dao.query(params);
+    public async select(params: { [key: string]: string }, options: QueryOptions, loggedUser: User): Promise<Array<Model> | Array<number>> {
+        if (loggedUser === null) {
+            throw new NotAuthorizedException(`Limited access to ${this.modelName}.select()!`);
+        }
+        if (loggedUser !== User.Internal) {
+            params.ownerId = '' + loggedUser.id;
+        }
+        return this.dao.query(params, options);
     }
 
-    public async get(id: number, selector?: string): Promise<Model> {
-        return this.dao.get(id, selector);
+    public async get(id: number, loggedUser: User): Promise<Model> {
+        if (loggedUser === null) {
+            throw new NotAuthorizedException(`Limited access to ${this.modelName}.get()!`);
+        }
+        const entity: Model = await this.dao.get(id);
+        if (loggedUser.id !== entity.ownerId && loggedUser !== User.Internal) {
+            throw new NotAuthorizedException(`Operation ${this.modelName}.get() reserved to entity owner!`);
+        }
+        return entity;
     }
 
-    public async create(candidate: Model): Promise<number> {
+    public async create(candidate: Model, loggedUser: User): Promise<number> {
+        if (loggedUser === null) {
+            throw new NotAuthorizedException(`Limited access to ${this.modelName}.create()!`);
+        }
+        candidate.ownerId = loggedUser.id;
         return this.dao.create(candidate);
     }
 
-    public async update(id: number, candidate: Model): Promise<number> {
+    public async update(id: number, candidate: Model, loggedUser: User): Promise<number> {
+        if (loggedUser === null) {
+            throw new NotAuthorizedException(`Limited access to ${this.modelName}.update()!`);
+        }
+        const entity: Model = await this.dao.get(id);
+        if (loggedUser.id !== entity.id && loggedUser !== User.Internal) {
+            throw new NotAuthorizedException(`Operation ${this.modelName}.update() reserved to entity owner!`);
+        }
         return this.dao.update(id, candidate);
     }
 
-    public async delete(id: number): Promise<void> {
+    public async delete(id: number, loggedUser: User): Promise<void> {
+        if (loggedUser === null) {
+            throw new NotAuthorizedException(`Limited access to ${this.modelName}.delete()!`);
+        }
+        const entity: Model = await this.dao.get(id);
+        if (loggedUser.id !== entity.id && loggedUser !== User.Internal) {
+            throw new NotAuthorizedException(`Operation ${this.modelName}.delete() reserved to entity owner!`);
+        }
         return this.dao.delete(id);
     }
 }

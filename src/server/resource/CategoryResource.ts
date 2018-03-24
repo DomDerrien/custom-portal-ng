@@ -1,5 +1,5 @@
 import { CategoryService as Service } from '../service/CategoryService';
-import { BaseResource, ServiceType } from './BaseResource';
+import { BaseResource } from './BaseResource';
 
 export class CategoryResource extends BaseResource<Service> {
     private static instance: CategoryResource;

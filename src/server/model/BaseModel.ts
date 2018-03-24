@@ -8,6 +8,7 @@ export class BaseModel {
     public id: number;
     public created: string;
     public updated: string;
+    public ownerId: number;
 
     public merge(update: BaseModel): boolean {
         if (typeof update !== 'object') {
@@ -22,7 +23,7 @@ export class BaseModel {
 
         if (typeof source === 'object' && typeof update === 'object') {
             for (let key in update) {
-                if (key === 'id' || key === 'created' || key === 'updated') {
+                if (key === 'id' || key === 'created' || key === 'updated' || key === 'ownerId') {
                     continue;
                 }
 

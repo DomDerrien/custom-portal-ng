@@ -1,4 +1,4 @@
-import { Element as PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './category.tmpl.js';
 import { appShell } from '../shell.js';
@@ -22,7 +22,7 @@ export class Category extends PolymerElement {
                 observer: '_resourceIdChanged'
             },
             resource: Object,
-            entities: Object,
+            entityIds: Object,
             repositoryUrl: String
         };
     }
@@ -34,7 +34,7 @@ export class Category extends PolymerElement {
     private readonly resourceName: string = 'Category';
     private resource: Resource;
     private readonly entityName: string = 'Link';
-    private entities: Array<Entity>;
+    private entityIds: Array<number>;
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     constructor() {
@@ -81,6 +81,7 @@ export class Category extends PolymerElement {
 
     _resourceIdChanged(newResourceId: number, oldResourceId: number): void {
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
+        ajaxElement.headers['x-ids-only'] = true;
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
         ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + newResourceId;
@@ -96,12 +97,11 @@ export class Category extends PolymerElement {
                     this.resource = Object.assign(new Resource(), <Resource>event.detail.response);
                 }
                 else { // if (-1 < requestUrl.indexOf(this.entityName)) {
-                    const entities: Array<Entity> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                    if (entities.length === 0) {
+                    const entityIds: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
+                    this.entityIds = entityIds;
+                    if (entityIds.length === 0) {
                         appShell.showToastFeedback(`No ${this.entityName} data retrieved!`);
-                        return;
                     }
-                    this.entities = entities;
                 }
                 break;
             }

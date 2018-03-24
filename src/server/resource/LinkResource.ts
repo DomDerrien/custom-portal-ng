@@ -1,5 +1,5 @@
 import { LinkService as Service } from '../service/LinkService';
-import { BaseResource, ServiceType } from './BaseResource';
+import { BaseResource } from './BaseResource';
 
 export class LinkResource extends BaseResource<Service> {
     private static instance: LinkResource;

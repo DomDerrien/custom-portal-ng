@@ -1,11 +1,11 @@
 runtime: nodejs8
-# login: required
 
 # what follows will be optional in the future:
 threadsafe: true
 handlers:
 - url: /.*
   script: server.js
+  # login: required
 skip_files:
   - ^(.*/)?#.*#$
   - ^(.*/)?.*~$

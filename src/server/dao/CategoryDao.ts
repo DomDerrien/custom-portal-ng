@@ -1,7 +1,7 @@
 import { Category as Model } from '../model/Category';
-import { BaseDao } from './BaseDao';
+import { GoogleDatastoreDao } from './GoogleDatastoreDao';
 
-export class CategoryDao extends BaseDao<Model> {
+export class CategoryDao extends GoogleDatastoreDao<Model> {
     private static instance: CategoryDao;
 
     // Factory method

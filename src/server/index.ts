@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as morgan from 'morgan';
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 
 import * as resources from './resource/index'; // List of all concrete BaseResource classes implementions
@@ -12,6 +13,9 @@ import { Router } from 'express-serve-static-core';
 interface ExpressBodyParser {
     json(options?: OptionsJson): RequestHandler;
     urlencoded(options?: OptionsUrlencoded): RequestHandler;
+}
+interface ExpressCookieParser {
+    (secret?: string | string[], options?: cookieParser.CookieParseOptions): express.RequestHandler;
 }
 interface ExpressLogger {
     (format: string | Function, options?: object): RequestHandler;
@@ -30,16 +34,18 @@ class Server {
     private clientMainPage: string;
     private fsAccess: FileSystemAccess;
     private expressApp: express.Application;
-    private expressParser: ExpressBodyParser;
+    private expressBodyParser: ExpressBodyParser;
+    private expressCookieParser: ExpressCookieParser;
     private expressLogger: ExpressLogger;
     private expressStatic: ExpressStatic;
     private expressRouter: ExpressRouter;
 
-    public constructor(app: express.Application = express(), parser: ExpressBodyParser = bodyParser, logger: ExpressLogger = morgan,
+    public constructor(app: express.Application = express(), bdParser: ExpressBodyParser = bodyParser, ckParser: ExpressCookieParser = cookieParser, logger: ExpressLogger = morgan,
         serveStatic: ExpressStatic = express.static, Router: ExpressRouter = express.Router, fsAccess: FileSystemAccess = fs
     ) {
         this.expressApp = app;
-        this.expressParser = parser;
+        this.expressBodyParser = bdParser;
+        this.expressCookieParser = ckParser;
         this.expressLogger = logger;
         this.expressStatic = serveStatic;
         this.expressRouter = Router;
@@ -52,8 +58,9 @@ class Server {
 
     private addMiddlewares() {
         this.expressApp.use(this.expressLogger('dev')); // See https://github.com/expressjs/morgan
-        this.expressApp.use(this.expressParser.json());
-        this.expressApp.use(this.expressParser.urlencoded({ extended: false }));
+        this.expressApp.use(this.expressBodyParser.json());
+        this.expressApp.use(this.expressBodyParser.urlencoded({ extended: false }));
+        this.expressApp.use(this.expressCookieParser());
         this.expressApp.use(function (req, res, next) {
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -69,6 +76,26 @@ class Server {
         }
     }
 
+    private replaceNodeImports(url: string, content: string, pattern: string): string {
+        const importRE: RegExp = new RegExp(`(?:'|")${pattern}/`, 'g');
+        if (importRE.test(content)) {
+            // Identify the request elements
+            let sourceFolder: string = url.substring('/node_modules/'.length);
+            let slashIdx: number = sourceFolder.indexOf('/');
+            const componentName = sourceFolder.substring(0, slashIdx);
+            sourceFolder = sourceFolder.substring(slashIdx + 1);
+            // Count how deep is the requester
+            slashIdx = -1;
+            let substitution = '';
+            while ((slashIdx = sourceFolder.indexOf('/', slashIdx + 1)) !== -1) {
+                substitution += '../';
+            }
+            // Replace the occurrence of node import statements starting with the pattern
+            content = content.replace(importRE, `'${substitution + '../../node_modules/' + pattern + '/'}`);
+        }
+        return content;
+    }
+
     private addClientRoutes() {
         this.expressApp.use(this.expressRouter().get('/node_modules/*', (request: express.Request, response: express.Response): void => {
             const url: string = request.url;
@@ -78,12 +105,9 @@ class Server {
                 case 'map': response.set('Content-Type', 'application/octet-stream'); break;
                 default: console.log('******* Unsupported extension', extension, 'for', url);
             }
-            const content: string = this.fsAccess.readFileSync('.' + url).toString('utf8');
-            // TODO:
-            // 1 compute the url without the current filename
-            // 2 compute a prefix with the short url appended with '/node_modules/'
-            // 3 while there's a match to /import '[^.\/].+?';/
-            // 3.1 insert the computed prefix before the module name to import
+            let content: string = this.replaceNodeImports(url, this.fsAccess.readFileSync('.' + url).toString('utf8'), '@polymer');
+            content = this.replaceNodeImports(url, content, '@webcomponents');
+            content = this.replaceNodeImports(url, content, '@hmh');
             response.send(content);
         }));
         this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {

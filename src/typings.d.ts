@@ -85,6 +85,7 @@ interface IronFormElement extends HTMLElement {
 interface IronAjaxElement extends HTMLElement {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     url: string;
+    headers: { [key: string]: any }
 }
 
 interface IronAjaxEvent extends Event {

@@ -41,8 +41,8 @@ export let tmpl: string = html`
     </app-header>
     
     <div class="content">
-        <template is="dom-repeat" items="{{entities}}">
-            <portal-category link-id$="{{item.id}}" class="item"></portal-category>
+        <template is="dom-repeat" items="{{entityIds}}">
+            <portal-category link-id$="{{item}}" class="item"></portal-category>
         </template>
     </div>
     
