@@ -110,6 +110,8 @@ export class Shell extends PolymerElement {
 
         getLoggedUser().then((loggedUser: User): void => {
             (<IronFormElement>this.$.addEntityForm).withCredentials = true;
+            this.$.initialMessage.style.display = 'none';
+            this.$.entityGrid.style.display = 'grid';
             this.refresh();
         });
     }

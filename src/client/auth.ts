@@ -1,3 +1,5 @@
+// Documentation: https://developers.google.com/identity/
+// Documentation: https://developers.google.com/identity/one-tap/web/
 import { User } from './model/User.js';
 import { Shell } from './shell.js';
 
@@ -6,66 +8,89 @@ import { Shell } from './shell.js';
 
 const SUPPORTED_AUTH_METHODS: Array<string> = [
     "https://accounts.google.com",
-    // "googleyolo://id-and-password",
+    "googleyolo://id-and-password",
 ];
 const SUPPORTED_ID_TOKEN_PROVIDERS: Array<{ [key: string]: string }> = [{
     uri: "https://accounts.google.com",
     clientId: "273389031064-g5buehmojtmebs0v3rgonm8v28aa4s8v.apps.googleusercontent.com"
 }];
 
+interface YoloResponse {
+    id: string;
+    password: string;
+    idToken: string;
+}
+
+class YoloError {
+    public type: 'userCanceled' | 'noCredentialsAvailable' | 'requestFailed' | 'operationCanceled"' | 'illegalConcurrentRequest' | 'initializationError' | 'configurationError' | 'unknown';
+}
+
 async function automaticSignIn(googleYolo: any): Promise<User> {
-    const credential = await googleYolo.retrieve({
+    return googleYolo.retrieve({
         supportedAuthMethods: SUPPORTED_AUTH_METHODS,
         supportedIdTokenProviders: SUPPORTED_ID_TOKEN_PROVIDERS
-    });
-
-    if (credential.password) {
-        return signInWithEmailAndPassword(credential.id, credential.password);
-    }
-    return useGoogleIdTokenForAuth(credential.idToken);
+    }).then((response: YoloResponse): Promise<User> => {
+        if (response.password) {
+            return signInWithEmailAndPassword(response.id, response.password);
+        }
+        return useGoogleIdTokenForAuth(response.idToken);
+    }).catch((error: YoloError): never => {
+        throw error;
+    })
 }
 
 async function oneTapSignIn(googleYolo: any): Promise<User> {
-    const credential = await googleYolo.hint({
+    return googleYolo.hint({
         supportedAuthMethods: SUPPORTED_AUTH_METHODS,
-        supportedIdTokenProviders: SUPPORTED_ID_TOKEN_PROVIDERS
+        supportedIdTokenProviders: SUPPORTED_ID_TOKEN_PROVIDERS,
+        context: 'signUp'
+    }).then((response: YoloResponse): Promise<User> => {
+        if (response.password) {
+            return signInWithEmailAndPassword(response.id, response.password);
+        }
+        return useGoogleIdTokenForAuth(response.idToken);
+    }).catch((error: YoloError): never => {
+        throw error;
     });
 
-    if (credential.password) {
-        return signInWithEmailAndPassword(credential.id, credential.password);
-    }
-    return useGoogleIdTokenForAuth(credential.idToken);
 }
 
-const triggerLoggedUserRetreival = async (googleYolo: any): Promise<User> => {
+const triggerLoggedUserRetreival = async (googleYolo: any): Promise<User | null> => {
 
-    try {
-        return automaticSignIn(googleYolo);
-    }
-    catch (error) {
+    return automaticSignIn(googleYolo).catch((error: YoloError): Promise<User> => {
         if (error.type === 'noCredentialsAvailable') {
-            try {
-                return oneTapSignIn(googleYolo);
-            }
-            catch (error) { }
+            return oneTapSignIn(googleYolo);
         }
-        saveLoggedUser(null);
-    }
+        throw Object.assign(new YoloError(), {
+            type: 'unknown'
+        });
+    }).catch((error: YoloError): Promise<User> => {
+        if (error.type === 'noCredentialsAvailable') {
+            // saveLoggedUser(null);
+            appShellRef.showDialogFeedback(`
+                No signed in Google accounts available...<br/>
+                Please, visit <a href="https://accounts.google.com" target="_googleAccount">accounts.google.com</a> to ensure that<br/>
+                at least one account is signed in, otherwise this application will remain unuseful!
+            `);
 
-    // switch (error.type) {
-    //     case "userCanceled": break; // The user closed the hint selector. Depending on the desired UX, request manual sign up or do nothing.
-    //     case "noCredentialsAvailable": break; // No hint available for the session. Depending on the desired UX, request manual sign up or do nothing.
-    //     case "requestFailed": break; // The request failed, most likely because of a timeout. You can retry another time if necessary.
-    //     case "operationCanceled": break; // The operation was programmatically canceled, do nothing.
-    //     case "illegalConcurrentRequest": break; // Another operation is pending, this one was aborted.
-    //     case "initializationError":break; // Failed to initialize. Refer to error.message for debugging.
-    //     case "configurationError": break; // Configuration error. Refer to error.message for debugging.
-    //     default: // Unknown error, do nothing.
-    // }
+        }
+        else if (error.type === 'userCanceled') {
+            appShellRef.showDialogFeedback(`
+                This application requires a valid login to enable its features!<br/>
+                Please, visit us again when you accept to share a unique identity.
+            `);
+        }
+        return null;
+    });
 }
 
-export const setupAuth = (appShell: Shell): void => {
-    (<any>window).onGoogleYoloLoad = triggerLoggedUserRetreival;
+let appShellRef: Shell;
+let appContext: Window;
+
+export const setupAuth = (appShell: Shell, context: Window = window): void => {
+    appShellRef = appShell;
+    appContext = context;
+    appContext.onGoogleYoloLoad = triggerLoggedUserRetreival;
 }
 
 let loggedUser: User;

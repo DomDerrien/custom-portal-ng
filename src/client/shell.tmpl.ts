@@ -28,6 +28,15 @@ export let tmpl: string = html`
             color: white;
         }
     
+        #initialMessage {
+            display: flex;
+            height: 100vh;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+        }
+    
         .grid {
             display: grid;
             padding: 20px;
@@ -80,11 +89,15 @@ export let tmpl: string = html`
             <app-toolbar class="toolbar">
                 <div main-title>Custom Portal v2</div>
                 <paper-icon-button id="refreshShell" icon="refresh" title="Refresh Content"></paper-icon-button>
-                <paper-icon-button id="addEntity" icon="add" title="Add a Category"></paper-icon-button>
+                <paper-icon-button id="addEntity" icon="add" title="Add a {{entityName}}"></paper-icon-button>
             </app-toolbar>
         </app-header>
     
-        <div class="grid">
+        <div id="initialMessage">
+            The Portal waits for your successful login.
+            <br/> Please wait for the login dialog...
+        </div>
+        <div id="entityGrid" class="grid" style="display: none;">
             <template is="dom-repeat" items="{{entityIds}}">
                 <portal-category resource-id$="{{item}}" class="item"></portal-category>
             </template>

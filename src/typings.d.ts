@@ -9,8 +9,8 @@ declare module "*.json" {
     export default json;
 }
 
-interface Array<T> {
-    totalCount: number;
+interface Window {
+    onGoogleYoloLoad: (googleYolo: any) => Promise<any>;
 }
 
 interface Array<T> {
