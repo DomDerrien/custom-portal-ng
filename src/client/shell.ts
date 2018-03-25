@@ -4,7 +4,7 @@ import './widgets/category.js';
 import { tmpl } from './shell.tmpl.js';
 import { User } from './model/User.js';
 import { Category as Entity } from './model/Category.js';
-import { setupAuth, getLoggedUser } from './auth.js';
+import { getLoggedUser, signOut } from './widgets/auth.js';
 
 export let appShell: Shell;
 
@@ -19,7 +19,6 @@ export class Shell extends PolymerElement {
 
     static get properties(): { [key: string]: string | object } {
         return {
-            sortBy: String,
             entityIds: Object,
             entityName: String,
             baseRepoUrl: String
@@ -28,17 +27,15 @@ export class Shell extends PolymerElement {
 
     private $: { [key: string]: HTMLElement };
 
-    private sortBy: string = '+title'; // Default attribute for sorting
+    private entityIds: Array<number>;
     private readonly baseRepoUrl: string = '/api/v1/';
     private readonly entityName: string = 'Category';
-    private entityIds: Array<number>;
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     constructor() {
         super();
         appShell = this;
-        setupAuth(this);
     }
 
     connectedCallback(): void {
@@ -51,6 +48,9 @@ export class Shell extends PolymerElement {
                 }],
                 [this.$.addEntity, 'click', (event: MouseEvent): void => {
                     (<PaperDialogElement>this.$.addEntityDlg).open();
+                }],
+                [this.$.signOut, 'click', (event: MouseEvent): void => {
+                    signOut();
                 }],
                 [this.$.addEntityDlgClose, 'click', (event: MouseEvent): void => {
                     (<IronFormElement>this.$.addEntityForm).reset();

@@ -11,7 +11,7 @@ import { ServerErrorException } from '../exceptions/ServerErrorException';
 
 // TODO: replace by the setup of the environment variable GOOGLE_APPLICATION_CREDENTIALS
 function getDatastoreCredentialsFilename(fsAccess: FileSystemAccess): string | undefined {
-    const filename: string = '../custom-portal-datastore-access.json';
+    const filename: string = '../fav-list-datastore-access.json';
     if (fsAccess.existsSync(filename)) {
         return filename;
     }

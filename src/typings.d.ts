@@ -10,6 +10,7 @@ declare module "*.json" {
 }
 
 interface Window {
+    gapi: any;
     onGoogleYoloLoad: (googleYolo: any) => Promise<any>;
 }
 

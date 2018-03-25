@@ -1,3 +1,5 @@
+import { html } from '../../node_modules/@polymer/polymer/polymer-element.js';
+
 import '../../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '../../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
@@ -16,8 +18,7 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../node_modules/@polymer/paper-toast/paper-toast.js';
 import '../node_modules/@polymer/paper-dialog/paper-dialog.js';
 
-// Stub of `lit-html` literal handler to benefit from VSCode syntax highligthing
-const html = (strings, ...values) => strings[0] + values.map((v, i) => v + strings[i + 1]).join('');
+import './widgets/auth.js';
 
 export let tmpl: string = html`
     <style is="custom-style">
@@ -90,12 +91,21 @@ export let tmpl: string = html`
                 <div main-title>Custom Portal v2</div>
                 <paper-icon-button id="refreshShell" icon="refresh" title="Refresh Content"></paper-icon-button>
                 <paper-icon-button id="addEntity" icon="add" title="Add a {{entityName}}"></paper-icon-button>
+                <div id="signOut" style="box-sizing: border-box; width: 40px; height: 40px; padding: 8px; cursor: pointer;" title="Sign out">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                        <path fill="#ffffff" d="M19,3 C20.11,3 21,3.9 21,5 L21,8 L19,8 L19,5 L5,5 L5,19 L19,19 L19,16 L21,16 L21,19 C21,20.1 20.11,21 19,21 L5,21 C3.9,21 3,20.1 3,19 L3,5 C3,3.9 3.9,3 5,3 L19,3 Z M15.5,17 L20.5,12 L15.5,7 L14.09,8.41 L16.67,11 L7,11 L7,13 L16.67,13 L14.09,15.59 L15.5,17 Z"
+                        />
+                    </svg>
+                </div>
             </app-toolbar>
         </app-header>
     
+    
         <div id="initialMessage">
-            The Portal waits for your successful login.
-            <br/> Please wait for the login dialog...
+            <div>
+                <div>The Portal waits for your successful login.</div>
+                <portal-auth></portal-auth>
+            </div>
         </div>
         <div id="entityGrid" class="grid" style="display: none;">
             <template is="dom-repeat" items="{{entityIds}}">

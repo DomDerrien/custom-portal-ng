@@ -2,21 +2,20 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Custom Portal NG</title>
 
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,300,300italic,400italic,500,500italic,700,700italic"
-        crossorigin="anonymous">
+        crossorigin="anonymous" />
 
-    <script src="https://smartlock.google.com/client"></script>
+    <script src="https://smartlock.google.com/client" async defer></script>
+    <script src="https://apis.google.com/js/api:client.js" async defer></script>
     <script src="/node_modules/web-animations-js/web-animations-next-lite.min.js"></script>
     <script src="/node_modules/@webcomponents/webcomponentsjs/webcomponents-lite.js"></script>
     <script type="module">
         import './shell.js';
-    </script>
-    <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js');
         }

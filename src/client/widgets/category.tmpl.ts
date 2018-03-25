@@ -1,12 +1,11 @@
+import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+
 import '../../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-
-// Stub of `lit-html` literal handler to benefit from VSCode syntax highligthing
-const html = (strings, ...values) => strings[0] + values.map((v, i) => v + strings[i + 1]).join('');
 
 export let tmpl: string = html`
     <style is="custom-style">

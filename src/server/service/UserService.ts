@@ -32,7 +32,7 @@ export class UserService extends BaseService<DAO> {
         if (loggedUser === null) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.get()!`);
         }
-        if (loggedUser.id !== id) {
+        if (loggedUser.id !== id && loggedUser !== User.Internal) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.get()!`);
         }
         const cached: User = <User>await this.cache.getIt(id);

@@ -86,12 +86,14 @@ export class AuthResource {
                     email: email,
                     name: decodedToken.name,
                     picture: decodedToken.picture,
-                    verifiedEmail: decodedToken.email_verified,
-                    latLong: request.headers['X-AppEngine-CityLatLong'] || '',
-                    city: request.headers['X-AppEngine-City'] || '',
-                    region: request.headers['X-AppEngine-Region'] || '',
-                    country: request.headers['X-AppEngine-Country'] || ''
+                    verifiedEmail: decodedToken.email_verified
                 });
+                if (request.headers['X-AppEngine-CityLatLong']) {
+                    user.latLong = <string>request.headers['X-AppEngine-CityLatLong'];
+                    user.city = <string>request.headers['X-AppEngine-City'];
+                    user.region = <string>request.headers['X-AppEngine-Region'];
+                    user.country = <string>request.headers['X-AppEngine-Country'];
+                }
                 const userId = await this.userService.create(user, User.Internal);
                 user = <User>await this.userService.get(userId, User.Internal);
                 this.setupResponseAndCache(response, user, sessionToken, true);
@@ -112,7 +114,7 @@ export class AuthResource {
         return Promise.resolve(null);
     }
 
-    private readonly CLIENT_ID: string = '273389031064-g5buehmojtmebs0v3rgonm8v28aa4s8v.apps.googleusercontent.com';
+    private readonly CLIENT_ID: string = '273389031064-d7cu4dnn3a48kerusgr7k1tnf3i6jj1v.apps.googleusercontent.com';
 
     private async verifyIdToken(idToken: string): Promise<TokenPayload> {
         return new Promise(((resolve: (value: TokenPayload) => void, reject: (reason: any) => void) => {
