@@ -56,7 +56,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
                     if (entities.length === 0) {
                         response.status(204).contentType('text/plain').send('No content matches the given criteria'); // HTTP status: NO CONTENT
                     } else {
-                        const status: number = entities.totalCount ? 206 : 200;
+                        const status: number = entities.totalCount ? 200 : 206;
                         response.setHeader('content-range', `items ${(options.rangeStart || 0)}-${(entities.length - 1)}/${(entities.totalCount || '*')}`);
                         if (options.idOnly) {
                             response.status(status).contentType('application/json').send(entities.map((entity: Model): number => entity.id));

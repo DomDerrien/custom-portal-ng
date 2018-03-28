@@ -77,43 +77,35 @@ export const signOut = async (): Promise<void> => {
 }
 
 export class AuthenticationController extends PolymerElement {
-    static get is(): string {
+    public static get is(): string {
         return 'portal-auth';
     }
 
-    static get template(): string {
+    public static get template(): HTMLTemplateElement {
         return tmpl;
     }
 
     private $: { [key: string]: HTMLElement };
 
-    constructor() {
+    public constructor() {
         super();
     }
 
-    connectedCallback(): void {
+    public connectedCallback(): void {
         super.connectedCallback();
     }
 
-    disconnectedCallback(): void {
+    public disconnectedCallback(): void {
         super.disconnectedCallback();
     }
 
-    ready(): void {
+    public ready(): void {
         super.ready();
 
-        window.onGoogleYoloLoad = this.triggerLoggedUserRetreival.bind(this);
+        window.onGoogleYoloLoad = this._triggerLoggedUserRetreival.bind(this);
     }
 
-    showDialogFeedback(text: string): void {
-        if (text) {
-            let element: PaperDialogElement = <PaperDialogElement>this.$.dialogFeedback;
-            element.querySelector('.message').innerHTML = text;
-            element.open();
-        }
-    }
-
-    private async  getUser(location: string): Promise<User> {
+    private async  _getUser(location: string): Promise<User> {
         const response: Response = await fetch(location, {
             credentials: 'same-origin',
             headers: {
@@ -127,7 +119,7 @@ export class AuthenticationController extends PolymerElement {
         return null;
     }
 
-    private async  useGoogleIdTokenForAuth(idToken: string): Promise<User> {
+    private async  _useGoogleIdTokenForAuth(idToken: string): Promise<User> {
         // A Google Account is retrieved. Since Google supports ID token responses,  you can use the token to sign in instead of initiating the Google sign-in flow.
         const response: Response = await fetch('/api/v1/Auth', {
             body: `{"idToken":"${idToken}"}`,
@@ -140,21 +132,21 @@ export class AuthenticationController extends PolymerElement {
         });
         if (response.status === 200 || response.status === 201) {
             const loggedUserLocation = response.headers.get('Location');
-            this.saveLoggedUser(await this.getUser(loggedUserLocation));
+            this._saveLoggedUser(await this._getUser(loggedUserLocation));
         }
         else {
-            this.saveLoggedUser(null);
+            this._saveLoggedUser(null);
         }
         return getLoggedUser();
     }
 
-    private async automaticSignIn(googleYolo: any): Promise<User> {
+    private async _automaticSignIn(googleYolo: any): Promise<User> {
         return googleYolo.retrieve({
             supportedAuthMethods: SUPPORTED_AUTH_METHODS,
             supportedIdTokenProviders: SUPPORTED_ID_TOKEN_PROVIDERS
         }).then((response: YoloResponse): Promise<User> => {
             if (response.idToken) {
-                return this.useGoogleIdTokenForAuth(response.idToken);
+                return this._useGoogleIdTokenForAuth(response.idToken);
             }
             throw new Error('Login with username and password is not implemented by Custom-Portal');
         }).catch((error: YoloError): never => {
@@ -162,14 +154,14 @@ export class AuthenticationController extends PolymerElement {
         })
     }
 
-    private async oneTapSignIn(googleYolo: any): Promise<User> {
+    private async _oneTapSignIn(googleYolo: any): Promise<User> {
         return googleYolo.hint({
             supportedAuthMethods: SUPPORTED_AUTH_METHODS,
             supportedIdTokenProviders: SUPPORTED_ID_TOKEN_PROVIDERS,
             context: 'signUp'
         }).then((response: YoloResponse): Promise<User> => {
             if (response.idToken) {
-                return this.useGoogleIdTokenForAuth(response.idToken);
+                return this._useGoogleIdTokenForAuth(response.idToken);
             }
             throw new Error('Login with username and password is not implemented by Custom-Portal');
         }).catch((error: YoloError): never => {
@@ -177,12 +169,12 @@ export class AuthenticationController extends PolymerElement {
         });
     }
 
-    private async triggerLoggedUserRetreival(googleYolo: any): Promise<User | null> {
+    private async _triggerLoggedUserRetreival(googleYolo: any): Promise<User | null> {
         googleYoloController = googleYolo;
 
-        return this.automaticSignIn(googleYolo).catch((error: YoloError): Promise<User> => {
+        return this._automaticSignIn(googleYolo).catch((error: YoloError): Promise<User> => {
             if (error.type === 'noCredentialsAvailable') {
-                return this.oneTapSignIn(googleYolo);
+                return this._oneTapSignIn(googleYolo);
             }
             throw Object.assign(new YoloError(), {
                 type: 'unknown'
@@ -190,10 +182,26 @@ export class AuthenticationController extends PolymerElement {
         }).catch((error: YoloError): Promise<User> => {
             if (error.type === 'noCredentialsAvailable') {
                 // saveLoggedUser(null);
-                this.showDialogFeedback(`No signed in Google account detected...<br/>Use the "Sign-in" button to login into your Google account.`);
+                const message: string = `No signed in Google account detected...<br/>Use the "Sign-in" button to login into your Google account.`;
+                (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
+                console.log('dispatch')
 
                 this.$.googleLoginBtn.style.display = 'block';
                 window.gapi.load('auth2', () => {
+                    // For scopes, look at: https://developers.google.com/identity/protocols/googlescopes
+                    // - email
+                    // - profile
+                    // - https://www.googleapis.com/auth/calendar.readonly
+                    // - https://www.googleapis.com/auth/cloud-platform // Cloud Tasks
+                    // - https://www.googleapis.com/auth/drive.readonly
+                    // - https://www.googleapis.com/auth/fitness.activity.write
+                    // - https://www.googleapis.com/auth/gmail.readonly
+                    // - https://www.googleapis.com/auth/urlshortener
+                    // - https://www.googleapis.com/auth/cloud-translation
+                    // - https://www.googleapis.com/auth/youtube.readonly
+
+                    // For incremental authorization: https://developers.google.com/identity/protocols/OAuth2UserAgent#incrementalAuth
+
                     const auth2Lib = window.gapi.auth2.init({
                         client_id: SUPPORTED_ID_TOKEN_PROVIDERS[0].clientId,
                         fetch_basic_profile: true, // Otherwise the ticked won't have the user's profile and the on-the-fly user account creation will fail server-side
@@ -201,21 +209,23 @@ export class AuthenticationController extends PolymerElement {
                     });
                     auth2Lib.attachClickHandler(this.$.googleLoginBtn, {},
                         (googleUser) => {
-                            this.useGoogleIdTokenForAuth(googleUser.getAuthResponse().id_token);
+                            this._useGoogleIdTokenForAuth(googleUser.getAuthResponse().id_token);
                         },
                         (error: any) => {
-                            this.showDialogFeedback(`This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`);
+                            const message: string = `This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`;
+                            (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
                         });
                 });
             }
             else if (error.type === 'userCanceled') {
-                this.showDialogFeedback(`This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`);
+                const message: string = `This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`;
+                (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
             }
             return null;
         });
     }
 
-    private saveLoggedUser(user: User): void {
+    private _saveLoggedUser(user: User): void {
         loggedUser = user;
         if (loggedUserPromiseResolver) {
             loggedUserPromiseResolver(user);

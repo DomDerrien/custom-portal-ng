@@ -1,6 +1,6 @@
 import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
 
-export let tmpl: string = html`
+export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">
         .loginButtonWrapper {
             display: flex;

@@ -7,6 +7,7 @@ import { DatastoreTransaction, TransactionResult } from '@google-cloud/datastore
 
 import { BaseDao, QueryOptions } from './BaseDao';
 import { BaseModel as Model } from '../model/BaseModel';
+import { ClientErrorException } from '../exceptions/ClientErrorException';
 import { ServerErrorException } from '../exceptions/ServerErrorException';
 
 // TODO: replace by the setup of the environment variable GOOGLE_APPLICATION_CREDENTIALS
@@ -52,7 +53,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
         let inequalityKey: string = null;
         for (let key in filters) {
             if (Array.isArray(filters[key])) {
-                throw new Error(`Selection of many entities from a collection of ${key} is not yet supported!`);
+                throw new ServerErrorException(`Selection of many entities from a collection of ${key} is not yet supported!`);
             }
             if (key === 'id') {
                 query.filter('__key__', this.store.key([this.modelName, Number(filters[key])]));
@@ -82,7 +83,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
                 if (1 < order.length) {
                     const directionChar: string = order.charAt(0);
                     if (directionChar !== '+' && directionChar !== '-') {
-                        throw new Error(`Value ${order} of filter \'_order\` must start by \`+\` or \`-\``);
+                        throw new ClientErrorException(`Value ${order} of filter \'_order\` must start by \`+\` or \`-\``);
                     }
                     query.order(order.substring(1), { descending: directionChar === '-' });
                 }
@@ -130,7 +131,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
             const mutationResults: Array<MutationResult> = response.mutationResults;
             const conflictDetected: boolean = mutationResults[0].conflictDetected;
             if (conflictDetected) {
-                throw new Error(`Entity ${this.modelName} not created, conflict detected...`);
+                throw new ServerErrorException(`Entity ${this.modelName} not created, conflict detected...`);
             }
             const key: DatastoreKey = mutationResults[0].key;
             if (key.id) {
@@ -138,10 +139,10 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
             }
             const pathElement: { idType: 'id' | 'name', id: number, kind: string } = <any>key.path[0];
             if (pathElement.idType !== 'id') {
-                throw new Error(`Entity ${this.modelName} just created is not identified with 'id', with '${pathElement.idType}' instead...`);
+                throw new ServerErrorException(`Entity ${this.modelName} just created is not identified with 'id', with '${pathElement.idType}' instead...`);
             }
             if (pathElement.kind !== this.modelName) {
-                throw new Error(`Entity ${this.modelName} just created is identified with first path element not with the '${this.modelName}' kind, with '${pathElement.kind}' instead...`);
+                throw new ServerErrorException(`Entity ${this.modelName} just created is identified with first path element not with the '${this.modelName}' kind, with '${pathElement.kind}' instead...`);
             }
             return Number(pathElement.id);
         });
@@ -152,7 +153,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
         delete candidate.id; // Only the value of the parameter `id` is used
         delete candidate.created; // No override possible
         if (!candidate.updated) {
-            throw new Error(`\`updated\` attribute for entity ${this.modelName} of key ${id} is required to avoid changes overrides!`)
+            throw new ClientErrorException(`\`updated\` attribute for entity ${this.modelName} of key ${id} is required to avoid changes overrides!`)
         }
         // Initiate a transaction
         const transaction: DatastoreTransaction = this.store.transaction();
@@ -165,11 +166,11 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
                 // Compare the `updated` attribute value with the one just retreived to detect possible overrides
                 const entity: T = this.prepareModelInstance(results[0]);
                 if (entity.updated !== candidate.updated) {
-                    throw new Error(`\'updated\' attributes for entity ${this.modelName} of key ${id} does not match with the one on the server!`);
+                    throw new ClientErrorException(`\'updated\' attributes for entity ${this.modelName} of key ${id} does not match with the one on the server!`);
                 }
                 // Integrate proposed updates, and throw an error if none is accepted/detected
                 if (!entity.merge(candidate)) {
-                    throw new Error(`No attribute to update for entity ${this.modelName} of key ${id}`);
+                    throw new ClientErrorException(`No attribute to update for entity ${this.modelName} of key ${id}`);
                 }
                 // Clean up the entity
                 delete entity.id;
@@ -186,7 +187,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
                 const mutationResults: Array<MutationResult> = response.mutationResults;
                 const conflictDetected: boolean = mutationResults[0].conflictDetected;
                 if (conflictDetected) {
-                    throw new Error(`Entity ${this.modelName} of key ${id} not updated, conflict detected...`);
+                    throw new ServerErrorException(`Entity ${this.modelName} of key ${id} not updated, conflict detected...`);
                 }
                 return id;
             }).
@@ -203,7 +204,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
             const mutationResults: Array<MutationResult> = response.mutationResults;
             const conflictDetected: boolean = mutationResults[0].conflictDetected;
             if (conflictDetected) {
-                throw new Error(`Entity ${this.modelName} of key ${id} not deleted, conflict detected...`);
+                throw new ServerErrorException(`Entity ${this.modelName} of key ${id} not deleted, conflict detected...`);
             }
         });
     }

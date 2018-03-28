@@ -19,8 +19,9 @@ import '../node_modules/@polymer/paper-toast/paper-toast.js';
 import '../node_modules/@polymer/paper-dialog/paper-dialog.js';
 
 import './widgets/auth.js';
+import './widgets/category.js';
 
-export let tmpl: string = html`
+export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">
         .toolbar {
             @apply --layout-horizontal;
@@ -132,11 +133,12 @@ export let tmpl: string = html`
         <h2>Add a {{entityName}}</h2>
         <iron-form id="addEntityForm">
             <form action="{{baseRepoUrl}}{{entityName}}" method="POST" enctype="application/json">
-                <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-zÀÉÈÊàéèêëôöüû \\-]*" required autofocus></paper-input>
+                <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû \\:\\-]*" required
+                    autofocus></paper-input>
                 <div style="display: grid; grid-gap: 20px; grid-template-columns: 60px 1fr;">
                     <paper-input name="positionIdx" type="number" label="Position" value="0" required></paper-input>
                     <paper-dropdown-menu label="Ordering" required>
-                        <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="{{sortBy}}">
+                        <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="+title">
                             <paper-item choice="+position">By position, increasing</paper-item>
                             <paper-item choice="-position">By position, decreasing</paper-item>
                             <paper-item choice="+title">By title, increasing</paper-item>

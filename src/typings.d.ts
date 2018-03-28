@@ -24,6 +24,10 @@ interface FileSystemAccess {
     writeFileSync(path: string, data: any, options?: any): void;
 }
 
+interface CustomEventInit {
+    composed: boolean;
+}
+
 interface ExtendableEvent extends Event {
     waitUntil(Promise): void;
 }

@@ -1,0 +1,39 @@
+indexes:
+  #
+  # Categories for the owner, ordered by creation date
+  #
+  - kind: Category
+    properties:
+    - name: ownerId
+      direction: asc
+    - name: created
+      direction: asc
+  #
+  # Categories for the owner, ordered by position index
+  #
+  - kind: Category
+    properties:
+    - name: ownerId
+      direction: asc
+    - name: positionIdx
+      direction: asc
+  #
+  # Categories for the owner, ordered by title
+  #
+  - kind: Category
+    properties:
+    - name: ownerId
+      direction: asc
+    - name: title
+      direction: asc
+  #
+  # Links for the owner and the specified category, ordered byctitle
+  #
+  - kind: Link
+    properties:
+    - name: ownerId
+      direction: asc
+    - name: categoryId
+      direction: asc
+    - name: title
+      direction: asc

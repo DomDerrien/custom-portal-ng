@@ -6,18 +6,16 @@ import { User } from './model/User.js';
 import { Category as Entity } from './model/Category.js';
 import { getLoggedUser, signOut } from './widgets/auth.js';
 
-export let appShell: Shell;
-
 export class Shell extends PolymerElement {
-    static get is(): string {
+    public static get is(): string {
         return 'portal-shell';
     }
 
-    static get template(): string {
+    public static get template(): HTMLTemplateElement {
         return tmpl;
     }
 
-    static get properties(): { [key: string]: string | object } {
+    public static get properties(): { [key: string]: string | object } {
         return {
             entityIds: Object,
             entityName: String,
@@ -32,64 +30,69 @@ export class Shell extends PolymerElement {
     private readonly entityName: string = 'Category';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
+    private _specialListenerDefs: Array<[HTMLElement, string, EventListener]>;
 
-    constructor() {
+    public constructor() {
         super();
-        appShell = this;
     }
 
-    connectedCallback(): void {
-        super.connectedCallback();
+    private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
+        return [
+            [this.$.signOut, 'click', (event: MouseEvent): void => {
+                signOut();
+            }],
+            [this.$.refreshShell, 'click', (event: MouseEvent): void => {
+                this._refresh();
+            }],
+            [this.$.addEntity, 'click', (event: MouseEvent): void => {
+                (<PaperDialogElement>this.$.addEntityDlg).open();
+            }],
+            [this.$.addEntityDlgClose, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.addEntityForm).reset();
+                (<PaperDialogElement>this.$.addEntityDlg).close();
+            }],
+            [this.$.addEntityFormSubmit, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.addEntityForm).submit();
+            }],
+            [this.$.addEntityForm, 'iron-form-presubmit', function (event: MouseEvent): void {
+                this.request.verbose = true;
+                let body = this.request.body;
+                body.positionIdx = Number(body.positionIdx);
+            }],
+            [this.$.addEntityForm, 'iron-form-response', (event: IronAjaxEvent): void => {
+                (<PaperDialogElement>this.$.addEntityDlg).close();
+                this._refresh();
+            }],
+            [this.$.addEntityForm, 'iron-form-error', (event: IronAjaxEvent): void => {
+                if (event.detail.request.status === 401) {
+                    this._showDialogFeedback('Login required!');
+                    return;
+                }
+                this._showToastFeedback(`Attempt to create ${this.entityName} record failed!`, 0);
+            }],
+            [this.$.remote, 'response', (event: IronAjaxEvent): void => {
+                let entityIds: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
+                this.entityIds = entityIds;
+                if (entityIds.length === 0) {
+                    this._showToastFeedback(`No ${this.entityName} data retrieved!`);
+                }
+            }],
+            [this.$.remote, 'error', (event: IronAjaxEvent): void => {
+                if (event.detail.request.status === 401) {
+                    this._showDialogFeedback('Login required!');
+                    return;
+                }
+                this._showToastFeedback(`Attempt to get ${this.entityName} record failed!`, 0);
+            }],
+            [<any>this, 'entity-updated', (event: CustomEvent): void => { this._refresh(); }],
+            [<any>this, 'show-dialog', (event: CustomEvent): void => { this._showDialogFeedback(event.detail.text); }],
+            [<any>this, 'show-notification', (event: CustomEvent): void => { this._showToastFeedback(event.detail.text, event.detail.duration); }],
+        ];
+    }
 
+    private _addEventListeners(): void {
         if (!this._listenerDefs) {
-            this._listenerDefs = [
-                [this.$.refreshShell, 'click', (event: MouseEvent): void => {
-                    this.refresh();
-                }],
-                [this.$.addEntity, 'click', (event: MouseEvent): void => {
-                    (<PaperDialogElement>this.$.addEntityDlg).open();
-                }],
-                [this.$.signOut, 'click', (event: MouseEvent): void => {
-                    signOut();
-                }],
-                [this.$.addEntityDlgClose, 'click', (event: MouseEvent): void => {
-                    (<IronFormElement>this.$.addEntityForm).reset();
-                    (<PaperDialogElement>this.$.addEntityDlg).close();
-                }],
-                [this.$.addEntityFormSubmit, 'click', (event: MouseEvent): void => {
-                    (<IronFormElement>this.$.addEntityForm).submit();
-                }],
-                [this.$.addEntityForm, 'iron-form-presubmit', function (event: MouseEvent): void {
-                    this.request.verbose = true;
-                    let body = this.request.body;
-                    body.positionIdx = Number(body.positionIdx);
-                }],
-                [this.$.addEntityForm, 'iron-form-response', (event: IronAjaxEvent): void => {
-                    (<PaperDialogElement>this.$.addEntityDlg).close();
-                    this.refresh();
-                }],
-                [this.$.addEntityForm, 'iron-form-error', (event: IronAjaxEvent): void => {
-                    appShell.showToastFeedback(`Attempt to create ${this.entityName} record from ${this.baseRepoUrl + this.entityName} failed!`, 0);
-                    (<PaperDialogElement>this.$.addEntityDlg).close();
-                }],
-                [this.$.remote, 'response', (event: IronAjaxEvent): void => {
-                    // TODO: adapt to process only identifiers when the request gets the entity identifiers only
-                    let entityIds: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                    this.entityIds = entityIds;
-                    if (entityIds.length === 0) {
-                        appShell.showToastFeedback(`No ${this.entityName} data retrieved!`);
-                    }
-                }],
-                [this.$.remote, 'error', (event: IronAjaxEvent): void => {
-                    if (event.detail.request.status === 401) {
-                        appShell.showDialogFeedback('Login required!');
-                    }
-                    else {
-                        appShell.showToastFeedback(`Attempt to get ${this.entityName} record from ${this.baseRepoUrl + this.entityName} failed!`, 0);
-                    }
-                    (<PaperDialogElement>this.$.addEntityDlg).close();
-                }],
-            ];
+            this._listenerDefs = this._defineListeners();
         }
 
         for (let listenerDef of this._listenerDefs) {
@@ -97,36 +100,66 @@ export class Shell extends PolymerElement {
         }
     }
 
-    disconnectedCallback(): void {
-        super.disconnectedCallback();
-
-        for (let listenerDef of this._listenerDefs) {
+    private _removeEventListeners(): void {
+        if (this._listenerDefs) {
+            for (let listenerDef of this._listenerDefs) {
+                listenerDef[0].removeEventListener(listenerDef[1], listenerDef[2]);
+            }
+        }
+        for (let listenerDef of this._specialListenerDefs) {
             listenerDef[0].removeEventListener(listenerDef[1], listenerDef[2]);
         }
     }
 
-    ready(): void {
+    public connectedCallback(): void {
+        super.connectedCallback();
+
+        // Most of event listeners attachment delayed until the user successful login
+
+        // Simple attachement of the special event listeners
+        if (!this._specialListenerDefs) {
+            this._specialListenerDefs = [
+                [<any>this, 'show-dialog', (event: CustomEvent): void => { this._showDialogFeedback(event.detail.text); }],
+                [<any>this, 'show-notification', (event: CustomEvent): void => { this._showToastFeedback(event.detail.text, event.detail.duration); }],
+            ];
+        }
+
+        for (let listenerDef of this._specialListenerDefs) {
+            console.log('*****', listenerDef[1]);
+            listenerDef[0].addEventListener(listenerDef[1], listenerDef[2]);
+        }
+    }
+
+    public disconnectedCallback(): void {
+        super.disconnectedCallback();
+
+        this._removeEventListeners();
+    }
+
+    public ready(): void {
         super.ready();
 
         getLoggedUser().then((loggedUser: User): void => {
+            this._addEventListeners();
+
             (<IronFormElement>this.$.addEntityForm).withCredentials = true;
             this.$.initialMessage.style.display = 'none';
             this.$.entityGrid.style.display = 'grid';
-            this.refresh();
+
+            this._refresh();
         });
     }
 
-    refresh() {
+    private _refresh() {
         // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
         ajaxElement.headers['x-ids-only'] = true;
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
         ajaxElement.url = this.baseRepoUrl + this.entityName;
-        // TODO: issue the request to get the entity identifiers only
     }
 
-    showToastFeedback(text: string, duration: number = 3000): void {
+    private _showToastFeedback(text: string, duration: number = 3000): void {
         let element: PaperToastElement = <PaperToastElement>this.$.toastFeedback;
         element.text = text;
         if (element.duration !== duration) {
@@ -136,7 +169,7 @@ export class Shell extends PolymerElement {
         element.show();
     }
 
-    showDialogFeedback(text: string): void {
+    private _showDialogFeedback(text: string): void {
         if (text) {
             let element: PaperDialogElement = <PaperDialogElement>this.$.dialogFeedback;
             element.querySelector('.message').innerHTML = text;
