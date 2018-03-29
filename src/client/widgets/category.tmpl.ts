@@ -27,6 +27,12 @@ export let tmpl: HTMLTemplateElement = html`
             background-color: rgba(0, 0, 0, .6);
             color: #fff;
             padding-right: 8px;
+            height: 48px;
+        }
+    
+        #addEntityDlg,
+        #editResourceDlg {
+            min-width: calc(260px + 2 * 40px);
         }
     </style>
     
@@ -59,7 +65,7 @@ export let tmpl: HTMLTemplateElement = html`
             <form action="{{baseRepoUrl}}{{entityName}}" method="POST" enctype="application/json">
                 <input type="hidden" name="categoryId" value="{{resource.id}}" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" required autofocus></paper-input>
-                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ]+" required></paper-input>
+                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ _]+" required></paper-input>
             </form>
         </iron-form>
         <div class="buttons">

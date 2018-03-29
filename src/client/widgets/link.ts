@@ -59,6 +59,10 @@ export class Link extends PolymerElement {
                 this.request.verbose = true;
                 this.request.method = 'PUT';
                 this.request.body = this.request.params;
+                // No need to convert `categoryId` into a number as it will be skipped server-side (read-only field)
+                if (this.request.body.faviconUrl === '') {
+                    delete this.request.body.faviconUrl;
+                }
                 this.request.params = {};
             }],
             [this.$.editResourceForm, 'iron-form-response', (event: IronAjaxEvent): void => {
@@ -126,6 +130,21 @@ export class Link extends PolymerElement {
         switch (requestMethod) {
             case 'GET': {
                 this.resource = Object.assign(new Resource(), <Resource>event.detail.response);
+
+                // Set the favicon url
+                if (this.resource.faviconUrl) {
+                    (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;
+                }
+                else {
+                    let domain = this.resource.href.replace(/^https?:\/\//, '').toLowerCase();
+                    const slashIdx = domain.indexOf('/')
+                    if (-1 < slashIdx) {
+                        domain = domain.substring(0, slashIdx);
+                    }
+                    if (domain.indexOf('localhost') === -1 && /^[a-z\.-]+$/.test(domain)) {
+                        (<HTMLImageElement>this.$.favicon).src = 'https://www.google.com/s2/favicons?domain=' + domain;
+                    }
+                }
             }
             case 'POST': {
                 break;

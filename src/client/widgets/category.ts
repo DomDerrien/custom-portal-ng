@@ -66,8 +66,7 @@ export class Category extends PolymerElement {
             }],
             [this.$.addEntityForm, 'iron-form-presubmit', function (event: MouseEvent): void {
                 this.request.verbose = true;
-                let body = this.request.body;
-                body.categoryId = Number(body.categoryId);
+                this.request.body.categoryId = Number(this.request.body.categoryId);
             }],
             [this.$.addEntityForm, 'iron-form-response', (event: IronAjaxEvent): void => {
                 (<PaperDialogElement>this.$.addEntityDlg).close();
@@ -95,6 +94,7 @@ export class Category extends PolymerElement {
                 this.request.verbose = true;
                 this.request.method = 'PUT';
                 this.request.body = this.request.params;
+                this.request.body.positionIdx = Number(this.request.body.positionIdx);
                 this.request.params = {};
             }],
             [this.$.editResourceForm, 'iron-form-response', (event: IronAjaxEvent): void => {

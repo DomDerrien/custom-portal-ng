@@ -58,8 +58,7 @@ export class Shell extends PolymerElement {
             }],
             [this.$.addEntityForm, 'iron-form-presubmit', function (event: MouseEvent): void {
                 this.request.verbose = true;
-                let body = this.request.body;
-                body.positionIdx = Number(body.positionIdx);
+                this.request.body.positionIdx = Number(this.request.body.positionIdx);
             }],
             [this.$.addEntityForm, 'iron-form-response', (event: IronAjaxEvent): void => {
                 (<PaperDialogElement>this.$.addEntityDlg).close();
@@ -147,6 +146,12 @@ export class Shell extends PolymerElement {
             this.$.initialMessage.style.display = 'none';
             this.$.entityGrid.style.display = 'grid';
 
+            if (loggedUser.picture) {
+                const image = document.createElement('img');
+                image.src = loggedUser.picture;
+                this.$.avatar.appendChild(image);
+            }
+
             this._refresh();
         });
     }
@@ -155,6 +160,7 @@ export class Shell extends PolymerElement {
         // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
         ajaxElement.headers['x-ids-only'] = true;
+        ajaxElement.headers['x-sort-by'] = '+positionIdx';
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
         ajaxElement.url = this.baseRepoUrl + this.entityName;

@@ -10,4 +10,5 @@ export class Link extends Parent {
     public title: string;
     public href: string;
     public categoryId: number;
+    public faviconUrl?: string;
 }

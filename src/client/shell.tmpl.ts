@@ -30,6 +30,13 @@ export let tmpl: HTMLTemplateElement = html`
             color: white;
         }
     
+        #avatar>img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+    
         #initialMessage {
             display: flex;
             height: 100vh;
@@ -98,6 +105,7 @@ export let tmpl: HTMLTemplateElement = html`
                         />
                     </svg>
                 </div>
+                <div id="avatar"></div>
             </app-toolbar>
         </app-header>
     
