@@ -27,4 +27,19 @@ export let tmpl: HTMLTemplateElement = html`
     </div>
     
     <iron-ajax id="remote" auto handle-as="json"> </iron-ajax>
+    
+    <paper-dialog id="editResourceDlg">
+        <h2>Edit the {{resourceName}}</h2>
+        <iron-form id="editResourceForm">
+            <form action="{{baseRepoUrl}}{{resourceName}}/{{resource.id}}" method="PUT" enctype="application/json">
+                <input type="hidden" name="updated" value="{{resource.updated}}" />
+                <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{resource.title}}" required autofocus></paper-input>
+                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ]+" value="{{resource.href}}" required></paper-input>
+            </form>
+        </iron-form>
+        <div class="buttons">
+            <paper-button id="editResourceDlgClose">Cancel</paper-button>
+            <paper-button id="editResourceFormSubmit" raised>Update</paper-button>
+        </div>
+    </paper-dialog>
 `;

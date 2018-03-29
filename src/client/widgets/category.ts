@@ -15,25 +15,29 @@ export class Category extends PolymerElement {
 
     public static get properties(): { [key: string]: string | object } {
         return {
+            baseRepoUrl: String,
+            entityIds: Object,
+            entityName: String,
+            resource: Object,
             resourceId: {
                 type: Number,
                 notify: true,
                 observer: '_resourceIdChanged'
             },
-            resource: Object,
-            entityIds: Object,
-            repositoryUrl: String
+            resourceName: String,
+            sortBy: String,
         };
     }
 
     private $: { [key: string]: HTMLElement };
 
-    private resourceId: number;
     private readonly baseRepoUrl: string = '/api/v1/';
-    private readonly resourceName: string = 'Category';
-    private resource: Resource;
-    private readonly entityName: string = 'Link';
     private entityIds: Array<number>;
+    private readonly entityName: string = 'Link';
+    private resource: Resource;
+    private resourceId: number;
+    private readonly resourceName: string = 'Category';
+    private sortBy: string;
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
@@ -74,6 +78,33 @@ export class Category extends PolymerElement {
                     (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: 'Login required!' } }));
                 }
                 const message: string = `Attempt to create ${this.entityName} record failed!`;
+                (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message, duration: 0 } }));
+            }],
+            [this.$.editResource, 'click', (event: MouseEvent): void => {
+                this.sortBy = this.resource.sortBy;
+                (<PaperDialogElement>this.$.editResourceDlg).open();
+            }],
+            [this.$.editResourceDlgClose, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.editResourceForm).reset();
+                (<PaperDialogElement>this.$.editResourceDlg).close();
+            }],
+            [this.$.editResourceFormSubmit, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.editResourceForm).submit();
+            }],
+            [this.$.editResourceForm, 'iron-form-presubmit', function (event: MouseEvent): void {
+                this.request.verbose = true;
+                this.request.method = 'PUT';
+                this.request.body = this.request.params;
+                this.request.params = {};
+            }],
+            [this.$.editResourceForm, 'iron-form-response', (event: IronAjaxEvent): void => {
+                (<PaperDialogElement>this.$.editResourceDlg).close();
+            }],
+            [this.$.editResourceForm, 'iron-form-error', (event: IronAjaxEvent): void => {
+                if (event.detail.request.status === 401) {
+                    (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: 'Login required!' } }));
+                }
+                const message: string = `Attempt to create ${this.resourceName} record failed!`;
                 (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message, duration: 0 } }));
             }],
             [this.$.remote, 'response', this._processAjaxResponse.bind(this)],

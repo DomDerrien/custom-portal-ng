@@ -107,7 +107,7 @@ class Server {
             }
             let content: string = this.replaceNodeImports(url, this.fsAccess.readFileSync('.' + url).toString('utf8'), '@polymer');
             content = this.replaceNodeImports(url, content, '@webcomponents');
-            content = this.replaceNodeImports(url, content, '@hmh');
+            content = this.replaceNodeImports(url, content, '@domderrien');
             response.send(content);
         }));
         this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {

@@ -17,17 +17,19 @@ export class Shell extends PolymerElement {
 
     public static get properties(): { [key: string]: string | object } {
         return {
+            baseRepoUrl: String,
             entityIds: Object,
             entityName: String,
-            baseRepoUrl: String
+            sortBy: String,
         };
     }
 
     private $: { [key: string]: HTMLElement };
 
-    private entityIds: Array<number>;
     private readonly baseRepoUrl: string = '/api/v1/';
     private readonly entityName: string = 'Category';
+    private entityIds: Array<number>;
+    private sortBy: string = '+title';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
     private _specialListenerDefs: Array<[HTMLElement, string, EventListener]>;
@@ -125,7 +127,6 @@ export class Shell extends PolymerElement {
         }
 
         for (let listenerDef of this._specialListenerDefs) {
-            console.log('*****', listenerDef[1]);
             listenerDef[0].addEventListener(listenerDef[1], listenerDef[2]);
         }
     }

@@ -37,6 +37,7 @@ export let tmpl: HTMLTemplateElement = html`
                 <paper-icon-button icon="more-vert" slot="dropdown-trigger"></paper-icon-button>
                 <paper-listbox slot="dropdown-content">
                     <paper-item id="addEntity">Add a {{entityName}}</paper-item>
+                    <paper-item id="openAll">Open all {{entityName}}s</paper-item>
                     <paper-item id="editResource">Edit the {{resourceName}}</paper-item>
                     <paper-item id="deleteResource">Delete the {{resourceName}}</paper-item>
                 </paper-listbox>
@@ -64,6 +65,35 @@ export let tmpl: HTMLTemplateElement = html`
         <div class="buttons">
             <paper-button id="addEntityDlgClose">Cancel</paper-button>
             <paper-button id="addEntityFormSubmit" raised>Add</paper-button>
+        </div>
+    </paper-dialog>
+    
+    <paper-dialog id="editResourceDlg">
+        <h2>Edit the {{resourceName}}</h2>
+        <iron-form id="editResourceForm">
+            <form action="{{baseRepoUrl}}{{resourceName}}/{{resource.id}}" method="PUT" enctype="application/json">
+                <input type="hidden" name="updated" value="{{resource.updated}}" />
+                <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû :-]*" value="{{resource.title}}"
+                    required autofocus></paper-input>
+                <div style="display: grid; grid-gap: 20px; grid-template-columns: 60px 1fr;">
+                    <paper-input name="positionIdx" type="number" label="Position" value="{{resource.positionIdx}}" required></paper-input>
+                    <paper-dropdown-menu label="Ordering" required>
+                        <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="{{sortBy}}">
+                            <paper-item choice="+position">By position, increasing</paper-item>
+                            <paper-item choice="-position">By position, decreasing</paper-item>
+                            <paper-item choice="+title">By title, increasing</paper-item>
+                            <paper-item choice="-title">By title, decreasing</paper-item>
+                            <paper-item choice="+created">By date, increasing</paper-item>
+                            <paper-item choice="-created">By date, decreasing</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <input type="hidden" name="sortBy" value="{{resource.sortBy}}">
+                </div>
+            </form>
+        </iron-form>
+        <div class="buttons">
+            <paper-button id="editResourceDlgClose">Cancel</paper-button>
+            <paper-button id="editResourceFormSubmit" raised>Update</paper-button>
         </div>
     </paper-dialog>
 `;

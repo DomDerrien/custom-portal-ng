@@ -133,12 +133,11 @@ export let tmpl: HTMLTemplateElement = html`
         <h2>Add a {{entityName}}</h2>
         <iron-form id="addEntityForm">
             <form action="{{baseRepoUrl}}{{entityName}}" method="POST" enctype="application/json">
-                <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû \\:\\-]*" required
-                    autofocus></paper-input>
+                <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû :-]*" required autofocus></paper-input>
                 <div style="display: grid; grid-gap: 20px; grid-template-columns: 60px 1fr;">
                     <paper-input name="positionIdx" type="number" label="Position" value="0" required></paper-input>
                     <paper-dropdown-menu label="Ordering" required>
-                        <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="+title">
+                        <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="{{sortBy}}">
                             <paper-item choice="+position">By position, increasing</paper-item>
                             <paper-item choice="-position">By position, decreasing</paper-item>
                             <paper-item choice="+title">By title, increasing</paper-item>
@@ -147,7 +146,7 @@ export let tmpl: HTMLTemplateElement = html`
                             <paper-item choice="-created">By date, decreasing</paper-item>
                         </paper-listbox>
                     </paper-dropdown-menu>
-                    <input type="hidden" name="sortBy" value="[[sortBy]]">
+                    <input type="hidden" name="sortBy" value="{{sortBy}}">
                 </div>
             </form>
         </iron-form>

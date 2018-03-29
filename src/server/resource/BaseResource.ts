@@ -31,9 +31,9 @@ export class BaseResource<T extends Service<DAO<Model>>> {
         router.get(basePath + '/', this.selectProcessor);
         let getProcessor = this.getProcessor;
         router.get(basePath + '/:id', getProcessor);
-        router.get(basePath + '/:id/*', getProcessor);
+        // router.get(basePath + '/:id/*', getProcessor);
         router.post(basePath + '/', this.createProcessor);
-        router.put(basePath + '/', this.updateProcessor);
+        router.put(basePath + '/:id', this.updateProcessor);
         router.delete(basePath + '/:id', this.deleteProcessor);
 
         console.log('Ready to serve requests sent to:', basePath);
