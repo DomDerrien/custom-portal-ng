@@ -23,11 +23,28 @@ export let tmpl: HTMLTemplateElement = html`
         .toolbar {
             @apply --layout-horizontal;
             @apply --layout-end-justified;
-            --app-toolbar-font-size: 16px;
+            --app-toolbar-font-size: 14px;
             background-color: rgba(0, 0, 0, .6);
             color: #fff;
-            padding-right: 8px;
-            height: 48px;
+            height: 42px;
+            position: relative;
+        }
+    
+        .floating-buttons {
+            display: block;
+            position: absolute;
+            z-index: 104;
+            right: 8px;
+        }
+    
+        app-header:hover .floating-buttons {
+            display: block;
+        }
+    
+        paper-icon-button {
+            width: 28px;
+            height: 28px;
+            padding: 4px;
         }
     
         #addEntityDlg,
@@ -38,16 +55,14 @@ export let tmpl: HTMLTemplateElement = html`
     
     <app-header fixed>
         <app-toolbar class="toolbar">
+            <img src="/images/category-white.svg" height="@4" width="24" style="margin-left: -5px;" />
             <div main-title>{{resource.title}}</div>
-            <paper-menu-button horizontal-align="right">
-                <paper-icon-button icon="more-vert" slot="dropdown-trigger"></paper-icon-button>
-                <paper-listbox slot="dropdown-content">
-                    <paper-item id="addEntity">Add a {{entityName}}</paper-item>
-                    <paper-item id="openAll">Open all {{entityName}}s</paper-item>
-                    <paper-item id="editResource">Edit the {{resourceName}}</paper-item>
-                    <paper-item id="deleteResource">Delete the {{resourceName}}</paper-item>
-                </paper-listbox>
-            </paper-menu-button>
+            <div class=" floating-buttons">
+                <paper-icon-button id="addEntity" title="Add a {{entityName}}" src="/images/link-add-white.svg"></paper-icon-button>
+                <paper-icon-button id="openAll" icon="open-in-new" title="Open all {{entityName}}s"></paper-icon-button>
+                <paper-icon-button id="editResource" icon="editor:mode-edit" title="Edit the {{resourceName}}"></paper-icon-button>
+                <paper-icon-button id="deleteResource" icon="delete" title="Delete the {{resourceName}}"></paper-icon-button>
+            </div>
         </app-toolbar>
     </app-header>
     
@@ -85,8 +100,6 @@ export let tmpl: HTMLTemplateElement = html`
                     <paper-input name="positionIdx" type="number" label="Position" value="{{resource.positionIdx}}" required></paper-input>
                     <paper-dropdown-menu label="Ordering" required>
                         <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="{{sortBy}}">
-                            <paper-item choice="+position">By position, increasing</paper-item>
-                            <paper-item choice="-position">By position, decreasing</paper-item>
                             <paper-item choice="+title">By title, increasing</paper-item>
                             <paper-item choice="-title">By title, decreasing</paper-item>
                             <paper-item choice="+created">By date, increasing</paper-item>

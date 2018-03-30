@@ -97,14 +97,8 @@ export let tmpl: HTMLTemplateElement = html`
         <app-header fixed>
             <app-toolbar class="toolbar">
                 <div main-title>Custom Portal v2</div>
-                <paper-icon-button id="refreshShell" icon="refresh" title="Refresh Content"></paper-icon-button>
-                <paper-icon-button id="addEntity" icon="add" title="Add a {{entityName}}"></paper-icon-button>
-                <div id="signOut" style="box-sizing: border-box; width: 40px; height: 40px; padding: 8px; cursor: pointer;" title="Sign out">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                        <path fill="#ffffff" d="M19,3 C20.11,3 21,3.9 21,5 L21,8 L19,8 L19,5 L5,5 L5,19 L19,19 L19,16 L21,16 L21,19 C21,20.1 20.11,21 19,21 L5,21 C3.9,21 3,20.1 3,19 L3,5 C3,3.9 3.9,3 5,3 L19,3 Z M15.5,17 L20.5,12 L15.5,7 L14.09,8.41 L16.67,11 L7,11 L7,13 L16.67,13 L14.09,15.59 L15.5,17 Z"
-                        />
-                    </svg>
-                </div>
+                <paper-icon-button id="addEntity" src="/images/category-add-white.svg" title="Add a {{entityName}}"></paper-icon-button>
+                <paper-icon-button id="signOut" src="/images/logout-white.svg" title="Sign out"></paper-icon-button>
                 <div id="avatar"></div>
             </app-toolbar>
         </app-header>
@@ -146,8 +140,6 @@ export let tmpl: HTMLTemplateElement = html`
                     <paper-input name="positionIdx" type="number" label="Position" value="0" required></paper-input>
                     <paper-dropdown-menu label="Ordering" required>
                         <paper-listbox slot="dropdown-content" class="dropdown-content" attr-for-selected="choice" selected="{{sortBy}}">
-                            <paper-item choice="+position">By position, increasing</paper-item>
-                            <paper-item choice="-position">By position, decreasing</paper-item>
                             <paper-item choice="+title">By title, increasing</paper-item>
                             <paper-item choice="-title">By title, decreasing</paper-item>
                             <paper-item choice="+created">By date, increasing</paper-item>

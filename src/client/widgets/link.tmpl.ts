@@ -1,4 +1,5 @@
 import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import '../../node_modules/@polymer/iron-icons/editor-icons.js';
 
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 
@@ -7,10 +8,29 @@ export let tmpl: HTMLTemplateElement = html`
         .toolbar {
             display: flex;
             justify-content: space-between;
+            font-size: 13px;
             align-items: center;
             padding-left: 16px;
             padding-right: 8px;
             height: 38px;
+            position: relative;
+        }
+    
+        .floating-buttons {
+            display: none;
+            position: absolute;
+            z-index: 104;
+            right: 0;
+        }
+    
+        .toolbar:hover .floating-buttons {
+            display: block;
+        }
+    
+        paper-icon-button {
+            width: 28px;
+            height: 28px;
+            padding: 4px;
         }
     
         #favicon {
@@ -27,17 +47,13 @@ export let tmpl: HTMLTemplateElement = html`
     
     <div class="toolbar">
         <div>
-            <img id="favicon" src="data:image/svg+xml;UTF-8,<svg fill='#aa0000' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M0 0h24v24H0z' fill='none'/><path d='M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/></svg>">
+            <img id="favicon" src="/images/link-black.svg" height="24" width="24">
             <a href="{{resource.href}}" target="_blank">{{resource.title}}</a>
         </div>
-        <paper-menu-button horizontal-align="right">
-            <paper-icon-button icon="more-vert" slot="dropdown-trigger"></paper-icon-button>
-            <paper-listbox slot="dropdown-content">
-                <paper-item id="editResource">Edit the {{resourceName}}</paper-item>
-                <paper-item id="deleteResource">Delete the {{resourceName}}</paper-item>
-            </paper-listbox>
-        </paper-menu-button>
-        </app-toolbar>
+        <div class="floating-buttons">
+            <paper-icon-button id="editResource" icon="editor:mode-edit" title="Edit the {{resourceName}}"></paper-icon-button>
+            <paper-icon-button id="deleteResource" icon="delete" title="Delete the {{resourceName}}"></paper-icon-button>
+        </div>
     </div>
     
     <iron-ajax id="remote" auto handle-as="json"></iron-ajax>

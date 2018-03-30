@@ -43,9 +43,6 @@ export class Shell extends PolymerElement {
             [this.$.signOut, 'click', (event: MouseEvent): void => {
                 signOut();
             }],
-            [this.$.refreshShell, 'click', (event: MouseEvent): void => {
-                this._refresh();
-            }],
             [this.$.addEntity, 'click', (event: MouseEvent): void => {
                 (<PaperDialogElement>this.$.addEntityDlg).open();
             }],
