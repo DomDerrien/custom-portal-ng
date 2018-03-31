@@ -82,11 +82,11 @@ class Server {
             // Identify the request elements
             let sourceFolder: string = url.substring('/node_modules/'.length);
             let slashIdx: number = sourceFolder.indexOf('/');
-            const componentName = sourceFolder.substring(0, slashIdx);
+            const componentName: string = sourceFolder.substring(0, slashIdx);
             sourceFolder = sourceFolder.substring(slashIdx + 1);
             // Count how deep is the requester
             slashIdx = -1;
-            let substitution = '';
+            let substitution: string = '';
             while ((slashIdx = sourceFolder.indexOf('/', slashIdx + 1)) !== -1) {
                 substitution += '../';
             }

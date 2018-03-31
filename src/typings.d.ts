@@ -80,6 +80,19 @@ interface PaperToastElement extends HTMLElement {
     toggle(): void;
 }
 
+interface IronAjaxElement extends HTMLElement {
+    url: string;
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    params: { [key: string]: any }
+    headers: { [key: string]: any }
+    body: { [key: string]: any };
+    _form?: IronAjaxElement; // Redirection when the IronAjaxElement is embedded into a IronForm...
+}
+
+interface IronAjaxEvent extends CustomEvent {
+    target: IronAjaxElement;
+}
+
 interface IronFormElement extends HTMLElement {
     headers: object;
     withCredentials: boolean;
@@ -87,12 +100,9 @@ interface IronFormElement extends HTMLElement {
     reset(event?: Event): void;
     validate(): boolean;
 }
-interface IronAjaxElement extends HTMLElement {
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    url: string;
-    headers: { [key: string]: any }
-}
 
-interface IronAjaxEvent extends Event {
-    detail: any;
+interface IronFormEvent {
+    target: {
+        request: IronAjaxElement
+    }
 }

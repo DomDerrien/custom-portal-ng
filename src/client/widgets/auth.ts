@@ -87,25 +87,13 @@ export class AuthenticationController extends PolymerElement {
 
     private $: { [key: string]: HTMLElement };
 
-    public constructor() {
-        super();
-    }
-
-    public connectedCallback(): void {
-        super.connectedCallback();
-    }
-
-    public disconnectedCallback(): void {
-        super.disconnectedCallback();
-    }
-
     public ready(): void {
         super.ready();
 
         window.onGoogleYoloLoad = this._triggerLoggedUserRetreival.bind(this);
     }
 
-    private async  _getUser(location: string): Promise<User> {
+    private async _getUser(location: string): Promise<User> {
         const response: Response = await fetch(location, {
             credentials: 'same-origin',
             headers: {
@@ -119,7 +107,7 @@ export class AuthenticationController extends PolymerElement {
         return null;
     }
 
-    private async  _useGoogleIdTokenForAuth(idToken: string): Promise<User> {
+    private async _useGoogleIdTokenForAuth(idToken: string): Promise<User> {
         // A Google Account is retrieved. Since Google supports ID token responses,  you can use the token to sign in instead of initiating the Google sign-in flow.
         const response: Response = await fetch('/api/v1/Auth', {
             body: `{"idToken":"${idToken}"}`,
@@ -184,7 +172,6 @@ export class AuthenticationController extends PolymerElement {
                 // saveLoggedUser(null);
                 const message: string = `No signed in Google account detected...<br/>Use the "Sign-in" button to login into your Google account.`;
                 (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
-                console.log('dispatch')
 
                 this.$.googleLoginBtn.style.display = 'block';
                 window.gapi.load('auth2', () => {

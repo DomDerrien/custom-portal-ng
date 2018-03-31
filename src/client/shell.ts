@@ -1,6 +1,6 @@
 import { PolymerElement } from '../../node_modules/@polymer/polymer/polymer-element.js';
 
-import './widgets/category.js';
+import { CategoryList } from './widgets/category-list.js';
 import { tmpl } from './shell.tmpl.js';
 import { User } from './model/User.js';
 import { Category as Entity } from './model/Category.js';
@@ -17,26 +17,12 @@ export class Shell extends PolymerElement {
 
     public static get properties(): { [key: string]: string | object } {
         return {
-            baseRepoUrl: String,
-            entityIds: Object,
-            entityName: String,
-            sortBy: String,
         };
     }
 
     private $: { [key: string]: HTMLElement };
 
-    private readonly baseRepoUrl: string = '/api/v1/';
-    private readonly entityName: string = 'Category';
-    private entityIds: Array<number>;
-    private sortBy: string = '+title';
-
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
-    private _specialListenerDefs: Array<[HTMLElement, string, EventListener]>;
-
-    public constructor() {
-        super();
-    }
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         return [
@@ -44,47 +30,10 @@ export class Shell extends PolymerElement {
                 signOut();
             }],
             [this.$.addEntity, 'click', (event: MouseEvent): void => {
-                (<PaperDialogElement>this.$.addEntityDlg).open();
+                (<CategoryList>(<PolymerElement>this.$.categoryList)).openAddDlg();
             }],
-            [this.$.addEntityDlgClose, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.addEntityForm).reset();
-                (<PaperDialogElement>this.$.addEntityDlg).close();
-            }],
-            [this.$.addEntityFormSubmit, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.addEntityForm).submit();
-            }],
-            [this.$.addEntityForm, 'iron-form-presubmit', function (event: MouseEvent): void {
-                this.request.verbose = true;
-                this.request.body.positionIdx = Number(this.request.body.positionIdx);
-            }],
-            [this.$.addEntityForm, 'iron-form-response', (event: IronAjaxEvent): void => {
-                (<PaperDialogElement>this.$.addEntityDlg).close();
-                this._refresh();
-            }],
-            [this.$.addEntityForm, 'iron-form-error', (event: IronAjaxEvent): void => {
-                if (event.detail.request.status === 401) {
-                    this._showDialogFeedback('Login required!');
-                    return;
-                }
-                this._showToastFeedback(`Attempt to create ${this.entityName} record failed!`, 0);
-            }],
-            [this.$.remote, 'response', (event: IronAjaxEvent): void => {
-                let entityIds: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                this.entityIds = entityIds;
-                if (entityIds.length === 0) {
-                    this._showToastFeedback(`No ${this.entityName} data retrieved!`);
-                }
-            }],
-            [this.$.remote, 'error', (event: IronAjaxEvent): void => {
-                if (event.detail.request.status === 401) {
-                    this._showDialogFeedback('Login required!');
-                    return;
-                }
-                this._showToastFeedback(`Attempt to get ${this.entityName} record failed!`, 0);
-            }],
-            [<any>this, 'entity-updated', (event: CustomEvent): void => { this._refresh(); }],
-            [<any>this, 'show-dialog', (event: CustomEvent): void => { this._showDialogFeedback(event.detail.text); }],
-            [<any>this, 'show-notification', (event: CustomEvent): void => { this._showToastFeedback(event.detail.text, event.detail.duration); }],
+            [<any>this, 'show-dialog', (event: CustomEvent): void => { event.stopPropagation(); this._showDialogFeedback(event.detail.text); }],
+            [<any>this, 'show-notification', (event: CustomEvent): void => { event.stopPropagation(); this._showToastFeedback(event.detail.text, event.detail.duration); }],
         ];
     }
 
@@ -99,12 +48,7 @@ export class Shell extends PolymerElement {
     }
 
     private _removeEventListeners(): void {
-        if (this._listenerDefs) {
-            for (let listenerDef of this._listenerDefs) {
-                listenerDef[0].removeEventListener(listenerDef[1], listenerDef[2]);
-            }
-        }
-        for (let listenerDef of this._specialListenerDefs) {
+        for (let listenerDef of this._listenerDefs) {
             listenerDef[0].removeEventListener(listenerDef[1], listenerDef[2]);
         }
     }
@@ -112,19 +56,7 @@ export class Shell extends PolymerElement {
     public connectedCallback(): void {
         super.connectedCallback();
 
-        // Most of event listeners attachment delayed until the user successful login
-
-        // Simple attachement of the special event listeners
-        if (!this._specialListenerDefs) {
-            this._specialListenerDefs = [
-                [<any>this, 'show-dialog', (event: CustomEvent): void => { this._showDialogFeedback(event.detail.text); }],
-                [<any>this, 'show-notification', (event: CustomEvent): void => { this._showToastFeedback(event.detail.text, event.detail.duration); }],
-            ];
-        }
-
-        for (let listenerDef of this._specialListenerDefs) {
-            listenerDef[0].addEventListener(listenerDef[1], listenerDef[2]);
-        }
+        this._addEventListeners();
     }
 
     public disconnectedCallback(): void {
@@ -139,28 +71,16 @@ export class Shell extends PolymerElement {
         getLoggedUser().then((loggedUser: User): void => {
             this._addEventListeners();
 
-            (<IronFormElement>this.$.addEntityForm).withCredentials = true;
-            this.$.initialMessage.style.display = 'none';
-            this.$.entityGrid.style.display = 'grid';
+            this.$.splashScreen.style.display = 'none';
+            this.$.categoryList.style.display = 'grid';
+            (<CategoryList>(<PolymerElement>this.$.categoryList)).refresh();
 
             if (loggedUser.picture) {
                 const image = document.createElement('img');
                 image.src = loggedUser.picture;
                 this.$.avatar.appendChild(image);
             }
-
-            this._refresh();
         });
-    }
-
-    private _refresh() {
-        // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
-        const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
-        ajaxElement.headers['x-ids-only'] = true;
-        ajaxElement.headers['x-sort-by'] = '+positionIdx';
-        ajaxElement.method = 'GET';
-        ajaxElement.url = '';
-        ajaxElement.url = this.baseRepoUrl + this.entityName;
     }
 
     private _showToastFeedback(text: string, duration: number = 3000): void {

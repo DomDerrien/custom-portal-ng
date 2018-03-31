@@ -39,10 +39,6 @@ export let tmpl: HTMLTemplateElement = html`
             margin-right: 4px;
             vertical-align: middle;
         }
-    
-        #editResourceDlg {
-            min-width: calc(260px + 2 * 40px);
-        }
     </style>
     
     <div class="toolbar">
@@ -56,22 +52,5 @@ export let tmpl: HTMLTemplateElement = html`
         </div>
     </div>
     
-    <iron-ajax id="remote" auto handle-as="json"></iron-ajax>
-    
-    <paper-dialog id="editResourceDlg">
-        <h2>Edit the {{resourceName}}</h2>
-        <iron-form id="editResourceForm">
-            <form action="{{baseRepoUrl}}{{resourceName}}/{{resource.id}}" method="PUT" enctype="application/json">
-                <input type="hidden" name="updated" value="{{resource.updated}}" />
-                <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{resource.title}}" required autofocus></paper-input>
-                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ _]+" value="{{resource.href}}" required></paper-input>
-                <paper-input name="faviconUrl" type="text" label="Optional favicon URL override" auto-validate pattern="[a-zA-Z0-9.\\-:/ _]+"
-                    value="{{resource.faviconUrl}}"></paper-input>
-            </form>
-        </iron-form>
-        <div class="buttons">
-            <paper-button id="editResourceDlgClose">Cancel</paper-button>
-            <paper-button id="editResourceFormSubmit" raised>Update</paper-button>
-        </div>
-    </paper-dialog>
+    <iron-ajax id="remote" auto handle-as="json" with-credentials="true"></iron-ajax>
 `;
