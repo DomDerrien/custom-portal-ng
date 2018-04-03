@@ -6,6 +6,7 @@ import { LinkDao as DAO } from '../dao/LinkDao';
 import { BaseService } from './BaseService';
 import { CategoryService as ParentService } from './CategoryService';
 import { NotFoundException } from '../exceptions/NotFoundException';
+import { ClientErrorException } from '../exceptions/ClientErrorException';
 
 export class LinkService extends BaseService<DAO> {
     private static instance: LinkService;
@@ -34,10 +35,13 @@ export class LinkService extends BaseService<DAO> {
     }
 
     public async create(candidate: Model, loggedUser: User): Promise<number> {
-        if (candidate.categoryId) {
-            // To be sure the entity exists and the logged user can access it
-            await this.getParentService().get(Number(candidate.categoryId), loggedUser);
+        if (!candidate.categoryId) {
+            throw new ClientErrorException(`Attribute 'categoryId' required!`);
         }
+        candidate.categoryId = Number(candidate.categoryId);
+        // To be sure the entity exists and the logged user can access it
+        await this.getParentService().get(candidate.categoryId, loggedUser);
+
         return super.create(candidate, loggedUser);
     }
 

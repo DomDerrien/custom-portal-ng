@@ -3,7 +3,7 @@ import { User } from '../model/User';
 import { CategoryDao as DAO } from '../dao/CategoryDao';
 import { BaseService } from './BaseService';
 import { LinkService as ChildService } from './LinkService';
-import { Category } from '../model/Category';
+import { Category as Model } from '../model/Category';
 import { NotFoundException } from '../exceptions/NotFoundException';
 import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
@@ -23,6 +23,18 @@ export class CategoryService extends BaseService<DAO> {
 
     private getChildService(): ChildService {
         return ChildService.getInstance();
+    }
+
+    public async create(candidate: Model, loggedUser: User): Promise<number> {
+        candidate.positionIdx = Number(candidate.positionIdx || 0);
+        return super.create(candidate, loggedUser);
+    }
+
+    public async update(id: number, candidate: Model, loggedUser: User): Promise<number> {
+        if (candidate.positionIdx) {
+            candidate.positionIdx = Number(candidate.positionIdx);
+        }
+        return super.update(id, candidate, loggedUser);
     }
 
     public async delete(id: number, loggedUser: User): Promise<void> {

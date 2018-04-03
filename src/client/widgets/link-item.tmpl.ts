@@ -16,11 +16,18 @@ export let tmpl: HTMLTemplateElement = html`
             position: relative;
         }
     
+        .toolbar>.link {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    
         .floating-buttons {
             display: none;
             position: absolute;
-            z-index: 104;
             right: 0;
+            padding-left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
         }
     
         .toolbar:hover .floating-buttons {
@@ -42,7 +49,7 @@ export let tmpl: HTMLTemplateElement = html`
     </style>
     
     <div class="toolbar">
-        <div>
+        <div class="link">
             <img id="favicon" src="/images/link-black.svg" height="24" width="24">
             <a href="{{resource.href}}" target="_blank">{{resource.title}}</a>
         </div>

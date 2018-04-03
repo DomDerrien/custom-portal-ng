@@ -62,8 +62,10 @@ class Server {
         this.expressApp.use(this.expressBodyParser.urlencoded({ extended: false }));
         this.expressApp.use(this.expressCookieParser());
         this.expressApp.use(function (req, res, next) {
-            res.header('Access-Control-Allow-Origin', '*');
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+            res.header('Vary', 'Origin');
+            res.header('Access-Control-Allow-Origin', <string>req.headers.origin);
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only');
+            res.header('Access-Control-Allow-Credentials', 'true');
             next();
         });
         this.expressApp.use(this.expressStatic(Server.CLIENT_JS_DEPS_FOLDER));

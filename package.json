@@ -46,10 +46,11 @@
     },
     "scripts": {
         "init": "popd ./src/client/; ln -s .../server/model/ .; popd",
-        "deploy": "gcloud app deploy",
-        "start": "node ./server.js",
+        "sync": "cp -R ./src/client/images ./src/client/fonts ./dist/client/",
         "dev": "nodemon -r source-map-support/register ./server.js --watch ./dist/server",
         "watch": "concurrently --names \"server,client\" -c \"bgBlue,black.bgGreen\" \"tsc -p ./src/server/tsconfig.json --watch\" \"tsc -p ./src/client/tsconfig.json --watch\"",
-        "test": "intern"
+        "test": "intern",
+        "deploy": "gcloud app deploy",
+        "start": "node ./server.js"
     }
 }
