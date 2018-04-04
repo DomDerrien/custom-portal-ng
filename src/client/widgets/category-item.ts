@@ -17,11 +17,10 @@ export class CategoryItem extends PolymerElement {
     public static get properties(): { [key: string]: string | object } {
         return {
             entityName: String,
-            resource: Object,
-            resourceId: {
-                type: Number,
+            resource: {
+                type: Object,
                 notify: true,
-                observer: '_resourceIdChanged'
+                observer: '_resourceChanged'
             },
             resourceName: String,
             sortBy: String,
@@ -33,7 +32,6 @@ export class CategoryItem extends PolymerElement {
     private readonly baseRepoUrl: string = '/api/v1/';
     private readonly entityName: string = 'Link';
     private resource: Resource;
-    private resourceId: number;
     private readonly resourceName: string = 'Category';
     private sortBy: string;
 
@@ -41,8 +39,6 @@ export class CategoryItem extends PolymerElement {
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         return [
-            [this.$.remote, 'response', this._processAjaxResponse.bind(this)],
-            [this.$.remote, 'error', this._processAjaxError.bind(this)],
             [this.$.addEntity, 'click', (event: MouseEvent): void => {
                 (<LinkList>(<PolymerElement>this.$.linkList)).openAddDlg();
             }],
@@ -73,7 +69,6 @@ export class CategoryItem extends PolymerElement {
         }
     }
 
-
     public connectedCallback(): void {
         super.connectedCallback();
 
@@ -86,30 +81,8 @@ export class CategoryItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceIdChanged(id: number, oldId: number): void {
-        if (id === 0) {
-            return;
-        }
-        const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
-        ajaxElement.headers['x-ids-only'] = false;
-        ajaxElement.method = 'GET';
-        ajaxElement.url = '';
-        ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + id;
-    }
-
-    private _processAjaxResponse(event: IronAjaxEvent): void {
-        this.resource = Object.assign(new Resource(), <Resource>event.detail.response);
+    private _resourceChanged(resource: Resource, old: Resource): void {
         (<LinkList>(<PolymerElement>this.$.linkList)).refresh();
-    }
-
-    private _processAjaxError(event: IronAjaxEvent): void {
-        if (event.detail.request.status === 401) {
-            (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: 'Login required!' } }));
-            return;
-        }
-
-        const message: string = `Attempt to get the ${this.resourceName} record failed!`;
-        (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message, duration: 0 } }));
     }
 }
 

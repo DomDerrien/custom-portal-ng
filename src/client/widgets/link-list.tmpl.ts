@@ -1,7 +1,9 @@
 import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../node_modules/@polymer/iron-icons/editor-icons.js';
-
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../../node_modules/@polymer/paper-dialog/paper-dialog.js';
+import '../../../node_modules/@polymer/iron-form/iron-form.js';
+import '../../../node_modules/@polymer/paper-input/paper-input.js';
+import '../../../node_modules/@polymer/paper-button/paper-button.js';
 
 import './link-item.js';
 
@@ -13,9 +15,9 @@ export let tmpl: HTMLTemplateElement = html`
         }
     </style>
     
-    <dom-repeat id="list" items="{{resourceIds}}">
+    <dom-repeat id="list" items="{{resources}}">
         <template>
-            <portal-link-item resource-id$="{{item}}" class="item"></portal-link-item>
+            <portal-link-item resource$="{{item}}" class="item"></portal-link-item>
         </template>
     </dom-repeat>
     
@@ -25,7 +27,7 @@ export let tmpl: HTMLTemplateElement = html`
         <h2>Add a {{resourceName}}</h2>
         <iron-form id="addForm">
             <form action="{{baseRepoUrl}}{{resourceName}}" method="POST" enctype="application/json">
-                <input type="hidden" name="categoryId" value="{{resource.categoryId}}" />
+                <input type="hidden" name="categoryId" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" required autofocus></paper-input>
                 <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+" required></paper-input>
             </form>
@@ -39,13 +41,14 @@ export let tmpl: HTMLTemplateElement = html`
     <paper-dialog id="editDlg">
         <h2>Edit the {{resourceName}}</h2>
         <iron-form id="editForm">
-            <form action="{{baseRepoUrl}}{{resourceName}}/{{resource.id}}" method="PUT" enctype="application/json">
-                <input type="hidden" name="updated" value="{{resource.updated}}" />
-                <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{resource.title}}" required autofocus></paper-input>
-                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+" value="{{resource.href}}"
+            <form action="{{baseRepoUrl}}{{resourceName}}/{{activeResource.id}}" method="PUT" enctype="application/json">
+                <input type="hidden" name="updated" value="{{activeResource.updated}}" />
+                <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{activeResource.title}}" required
+                    autofocus></paper-input>
+                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+" value="{{activeResource.href}}"
                     required></paper-input>
                 <paper-input name="faviconUrl" type="text" label="Optional favicon URL override" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+"
-                    value="{{resource.faviconUrl}}"></paper-input>
+                    value="{{activeResource.faviconUrl}}"></paper-input>
             </form>
         </iron-form>
         <div class="buttons">

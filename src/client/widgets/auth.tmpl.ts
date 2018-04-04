@@ -58,12 +58,4 @@ export let tmpl: HTMLTemplateElement = html`
             <span class="loginCall">Sign in</span>
         </div>
     </div>
-    
-    <paper-dialog id="dialogFeedback">
-        <h2>Information</h2>
-        <p class="message"></p>
-        <div class="buttons">
-            <paper-button dialog-confirm autofocus>OK</paper-button>
-        </div>
-    </paper-dialog>
 `;

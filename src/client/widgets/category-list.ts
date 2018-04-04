@@ -14,8 +14,7 @@ export class CategoryList extends PolymerElement {
 
     public static get properties(): { [key: string]: string | object } {
         return {
-            resource: Object,
-            resourceIds: Array,
+            resources: Array,
             resourceName: String,
             sortBy: String,
         };
@@ -24,8 +23,8 @@ export class CategoryList extends PolymerElement {
     private $: { [key: string]: HTMLElement };
 
     private readonly baseRepoUrl: string = '/api/v1/';
-    private resource: Resource;
-    private resourceIds: Array<number>;
+    private activeResource: Resource;
+    private resources: Array<Resource>;
     private readonly resourceName: string = 'Category';
     private sortBy: string = '+title';
 
@@ -53,7 +52,7 @@ export class CategoryList extends PolymerElement {
             [this.$.addForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'edit-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
-                this.resource = event.detail.resource;
+                this.activeResource = event.detail.resource;
                 (<PaperDialogElement>this.$.editDlg).open();
             }],
             [this.$.editDlgClose, 'click', (event: MouseEvent): void => {
@@ -68,18 +67,18 @@ export class CategoryList extends PolymerElement {
                 request.method = 'PUT';
                 request.body = request.params;
                 request.body.positionIdx = Number(request.body.positionIdx);
-                request.body.updated = this.resource.updated;
+                request.body.updated = this.activeResource.updated;
                 request.params = {};
             }],
             [this.$.editForm, 'iron-form-response', ajaxSuccessHandler],
             [this.$.editForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'delete-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
-                this.resource = event.detail.resource;
+                this.activeResource = event.detail.resource;
                 const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
                 ajaxElement.method = 'DELETE';
                 ajaxElement.url = '';
-                ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + this.resource.id;
+                ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + this.activeResource.id;
             }],
         ];
     }
@@ -117,7 +116,6 @@ export class CategoryList extends PolymerElement {
     public refresh() {
         // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
-        ajaxElement.headers['x-ids-only'] = true;
         ajaxElement.headers['x-sort-by'] = '+positionIdx';
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
@@ -136,9 +134,8 @@ export class CategoryList extends PolymerElement {
 
         switch (requestMethod) {
             case 'GET': {
-                const ids: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                this.resourceIds = ids;
-                if (ids.length === 0) {
+                this.resources = Array.isArray(event.detail.response) ? event.detail.response : [];
+                if (this.resources.length === 0) {
                     const message: string = `No ${this.resourceName} data retrieved!`;
                     (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message } }));
                 }
@@ -152,18 +149,18 @@ export class CategoryList extends PolymerElement {
             case 'PUT': {
                 (<PaperDialogElement>this.$.editDlg).close();
                 const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.resource.id);
+                const idx: number = list.items.indexOf(this.activeResource.id);
                 list.items.splice(idx, 1, 0);
                 list.items = list.items.slice();
                 setTimeout((): void => {
-                    list.items.splice(idx, 1, this.resource.id);
+                    list.items.splice(idx, 1, this.activeResource.id);
                     list.items = list.items.slice();
                 }, 0);
                 break;
             }
             case 'DELETE': {
                 const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.resource.id);
+                const idx: number = list.items.indexOf(this.activeResource.id);
                 list.items.splice(idx, 1);
                 list.items = list.items.slice();
                 break;

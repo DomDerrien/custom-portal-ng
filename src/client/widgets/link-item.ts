@@ -14,11 +14,10 @@ export class LinkItem extends PolymerElement {
 
     public static get properties(): { [key: string]: string | object } {
         return {
-            resource: Object,
-            resourceId: {
-                type: Number,
+            resource: {
+                type: Object,
                 notify: true,
-                observer: '_resourceIdChanged'
+                observer: '_resourceChanged'
             },
             resourceName: String,
         };
@@ -28,15 +27,12 @@ export class LinkItem extends PolymerElement {
 
     private readonly baseRepoUrl: string = '/api/v1/';
     private resource: Resource;
-    private resourceId: number;
     private readonly resourceName: string = 'Link';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         return [
-            [this.$.remote, 'response', this._processAjaxResponse.bind(this)],
-            [this.$.remote, 'error', this._processAjaxError.bind(this)],
             [this.$.editResource, 'click', (event: MouseEvent): void => {
                 (<EventTarget>(<any>this)).dispatchEvent(new CustomEvent('edit-resource', { bubbles: true, composed: true, detail: { resource: this.resource } }));
             }],
@@ -76,20 +72,7 @@ export class LinkItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceIdChanged(id: number, oldId: number): void {
-        if (id === 0) {
-            return;
-        }
-        const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
-        ajaxElement.headers['x-ids-only'] = false;
-        ajaxElement.method = 'GET';
-        ajaxElement.url = '';
-        ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + id;
-    }
-
-    private _processAjaxResponse(event: IronAjaxEvent): void {
-        this.resource = Object.assign(new Resource(), <Resource>event.detail.response);
-
+    private _resourceChanged(id: number, oldId: number): void {
         // Set the favicon url
         if (this.resource.faviconUrl) {
             (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;
@@ -104,16 +87,6 @@ export class LinkItem extends PolymerElement {
                 (<HTMLImageElement>this.$.favicon).src = 'https://www.google.com/s2/favicons?domain=' + domain;
             }
         }
-    }
-
-    private _processAjaxError(event: IronAjaxEvent): void {
-        if (event.detail.request.status === 401) {
-            (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: 'Login required!' } }));
-            return;
-        }
-
-        const message: string = `Attempt to get the ${this.resourceName} record failed!`;
-        (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message, duration: 0 } }));
     }
 }
 

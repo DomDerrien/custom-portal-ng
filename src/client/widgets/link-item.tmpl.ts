@@ -1,7 +1,7 @@
 import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../node_modules/@polymer/iron-icons/editor-icons.js';
-
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import '../../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import '../../../node_modules/@polymer/iron-icons/iron-icons.js';
+import '../../../node_modules/@polymer/iron-icons/editor-icons.js';
 
 export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">
@@ -58,6 +58,4 @@ export let tmpl: HTMLTemplateElement = html`
             <paper-icon-button id="deleteResource" icon="delete" title="Delete the {{resourceName}}"></paper-icon-button>
         </div>
     </div>
-    
-    <iron-ajax id="remote" auto handle-as="json" with-credentials="true"></iron-ajax>
 `;

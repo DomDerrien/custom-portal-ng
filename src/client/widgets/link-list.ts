@@ -1,4 +1,4 @@
-import { PolymerElement, html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './link-list.tmpl.js';
 import { Link as Resource } from '../model/Link.js';
@@ -15,8 +15,7 @@ export class LinkList extends PolymerElement {
     public static get properties(): { [key: string]: string | object } {
         return {
             categoryId: String,
-            resource: Object,
-            resourceIds: Array,
+            resources: Array,
             resourceName: String,
         };
     }
@@ -25,8 +24,8 @@ export class LinkList extends PolymerElement {
 
     private readonly baseRepoUrl: string = '/api/v1/';
     private categoryId: string;
-    private resource: Resource;
-    private resourceIds: Array<number>;
+    private activeResource: Resource;
+    private resources: Array<Resource>;
     private readonly resourceName: string = 'Link';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
@@ -53,7 +52,7 @@ export class LinkList extends PolymerElement {
             [this.$.addForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'edit-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
-                this.resource = event.detail.resource;
+                this.activeResource = event.detail.resource;
                 (<PaperDialogElement>this.$.editDlg).open();
             }],
             [this.$.editDlgClose, 'click', (event: MouseEvent): void => {
@@ -68,7 +67,7 @@ export class LinkList extends PolymerElement {
                 request.method = 'PUT';
                 request.body = request.params;
                 request.body.categoryId = this.categoryId;
-                request.body.updated = this.resource.updated;
+                request.body.updated = this.activeResource.updated;
                 if (request.body.faviconUrl === '') {
                     delete request.body.faviconUrl;
                 }
@@ -78,11 +77,11 @@ export class LinkList extends PolymerElement {
             [this.$.editForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'delete-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
-                this.resource = event.detail.resource;
+                this.activeResource = event.detail.resource;
                 const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
                 ajaxElement.method = 'DELETE';
                 ajaxElement.url = '';
-                ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + this.resource.id;
+                ajaxElement.url = this.baseRepoUrl + this.resourceName + '/' + this.activeResource.id;
             }],
         ];
     }
@@ -117,11 +116,9 @@ export class LinkList extends PolymerElement {
         this._removeEventListeners();
     }
 
-
     public refresh(): void {
         // TODO: place this logic in a delayed `setTimeout()` while preventing abusive refreshes...
         const ajaxElement: IronAjaxElement = <IronAjaxElement>this.$.remote;
-        ajaxElement.headers['x-ids-only'] = true;
         ajaxElement.headers['x-sort-by'] = '+title'; // TODO: get that information from the parent category
         ajaxElement.method = 'GET';
         ajaxElement.url = '';
@@ -140,9 +137,8 @@ export class LinkList extends PolymerElement {
 
         switch (requestMethod) {
             case 'GET': {
-                const ids: Array<number> = Array.isArray(event.detail.response) ? event.detail.response : [];
-                this.resourceIds = ids;
-                if (ids.length === 0) {
+                this.resources = Array.isArray(event.detail.response) ? event.detail.response : [];
+                if (this.resources.length === 0) {
                     const message: string = `No ${this.resourceName} data retrieved!`;
                     (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message } }));
                 }
@@ -156,18 +152,18 @@ export class LinkList extends PolymerElement {
             case 'PUT': {
                 (<PaperDialogElement>this.$.editDlg).close();
                 const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.resource.id);
+                const idx: number = list.items.indexOf(this.activeResource.id);
                 list.items.splice(idx, 1, 0);
                 list.items = list.items.slice();
                 setTimeout((): void => {
-                    list.items.splice(idx, 1, this.resource.id);
+                    list.items.splice(idx, 1, this.activeResource.id);
                     list.items = list.items.slice();
                 }, 0);
                 break;
             }
             case 'DELETE': {
                 const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.resource.id);
+                const idx: number = list.items.indexOf(this.activeResource.id);
                 list.items.splice(idx, 1);
                 list.items = list.items.slice();
                 break;
