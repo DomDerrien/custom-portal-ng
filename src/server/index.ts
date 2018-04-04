@@ -10,6 +10,13 @@ import { RequestHandler } from 'express';
 import { OptionsJson, OptionsUrlencoded } from 'body-parser';
 import { ServeStaticOptions } from 'serve-static';
 import { Router } from 'express-serve-static-core';
+
+declare global {
+    interface FileSystemAccess {
+        statSync(path: string): fs.Stats;
+    }
+}
+
 interface ExpressBodyParser {
     json(options?: OptionsJson): RequestHandler;
     urlencoded(options?: OptionsUrlencoded): RequestHandler;
@@ -64,11 +71,18 @@ class Server {
         this.expressApp.use(function (req, res, next) {
             res.header('Vary', 'Origin');
             res.header('Access-Control-Allow-Origin', <string>req.headers.origin);
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only');
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only, Access-Control-Max-Age');
             res.header('Access-Control-Allow-Credentials', 'true');
             next();
         });
-        this.expressApp.use(this.expressStatic(Server.CLIENT_JS_DEPS_FOLDER));
+        this.expressApp.use(this.expressStatic(Server.CLIENT_JS_DEPS_FOLDER, {
+            etag: true,
+            immutable: true,
+            index: false,
+            lastModified: true,
+            maxAge: 15 * 60 * 1000,
+            redirect: false
+        }));
     }
 
     private addServerRoutes() {
@@ -98,6 +112,27 @@ class Server {
         return content;
     }
 
+    private toLastModifiedFormat(date: Date): string {
+        const weekdays: Array<string> = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months: Array<string> = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const out: Array<string> = [
+            weekdays[date.getDay()],
+            ', ',
+            ('' + date.getDate()).padStart(2, '0'),
+            ' ',
+            months[date.getMonth()],
+            (' ' + date.getFullYear()),
+            ' ',
+            ('' + date.getHours()).padStart(2, '0'),
+            ':',
+            ('' + date.getMinutes()).padStart(2, '0'),
+            ':',
+            ('' + date.getSeconds()).padStart(2, '0'),
+            ' GMT'
+        ];
+        return out.join('');
+    }
+
     private addClientRoutes() {
         this.expressApp.use(this.expressRouter().get('/node_modules/*', (request: express.Request, response: express.Response): void => {
             const url: string = request.url;
@@ -110,7 +145,8 @@ class Server {
             let content: string = this.replaceNodeImports(url, this.fsAccess.readFileSync('.' + url).toString('utf8'), '@polymer');
             content = this.replaceNodeImports(url, content, '@webcomponents');
             content = this.replaceNodeImports(url, content, '@domderrien');
-            response.send(content);
+            const lastModified: Date = new Date(this.fsAccess.statSync('.' + url).mtime);
+            response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
         }));
         this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {
             response.set('Content-Type', 'text/html');

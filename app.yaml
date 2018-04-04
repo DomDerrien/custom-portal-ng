@@ -6,10 +6,3 @@ handlers:
 - url: /.*
   script: server.js
   # login: required
-skip_files:
-  - ^(.*/)?#.*#$
-  - ^(.*/)?.*~$
-  - ^(.*/)?.*\.py[co]$
-  - ^(.*/)?.*/RCS/.*$
-  - ^(.*/)?\..*$
-  - ^.*node_modules(/.*)?

@@ -29,7 +29,7 @@ export let tmpl: HTMLTemplateElement = html`
             <form action="{{baseRepoUrl}}{{resourceName}}" method="POST" enctype="application/json">
                 <input type="hidden" name="categoryId" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" required autofocus></paper-input>
-                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+" required></paper-input>
+                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_()+]+" required></paper-input>
             </form>
         </iron-form>
         <div class="buttons">
@@ -45,9 +45,9 @@ export let tmpl: HTMLTemplateElement = html`
                 <input type="hidden" name="updated" value="{{activeResource.updated}}" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{activeResource.title}}" required
                     autofocus></paper-input>
-                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+" value="{{activeResource.href}}"
+                <paper-input name="href" type="text" label="URL" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_()+]+" value="{{activeResource.href}}"
                     required></paper-input>
-                <paper-input name="faviconUrl" type="text" label="Optional favicon URL override" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_]+"
+                <paper-input name="faviconUrl" type="text" label="Optional favicon URL override" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_()+]+"
                     value="{{activeResource.faviconUrl}}"></paper-input>
             </form>
         </iron-form>
