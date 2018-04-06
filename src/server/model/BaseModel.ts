@@ -1,3 +1,5 @@
+import { readOnly, getReadOnly } from './ReadOnly.js';
+
 export class BaseModel {
     // Factory method -- cannot be `abstract` because it's a public method
     public static getInstance(): BaseModel {
@@ -5,10 +7,10 @@ export class BaseModel {
     }
 
     // Common attributes
-    public id: number;
-    public created: string;
-    public updated: string;
-    public ownerId: number;
+    @readOnly() public id: number;
+    @readOnly() public created: string;
+    @readOnly() public updated: string;
+    @readOnly() public ownerId: number;
 
     public merge(update: BaseModel): boolean {
         if (typeof update !== 'object') {
@@ -18,12 +20,12 @@ export class BaseModel {
         return BaseModel.merge(this, update);
     }
 
-    public static merge(source, update) {
+    public static merge(source: BaseModel, update: BaseModel): boolean {
         let updated = false;
 
         if (typeof source === 'object' && typeof update === 'object') {
             for (let key in update) {
-                if (key === 'id' || key === 'created' || key === 'updated' || key === 'ownerId') {
+                if (getReadOnly(source, key) === true) {
                     continue;
                 }
 

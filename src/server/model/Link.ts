@@ -1,3 +1,4 @@
+import { readOnly } from './ReadOnly.js';
 import { BaseModel as Parent } from './BaseModel.js';
 
 export class Link extends Parent {
@@ -9,6 +10,6 @@ export class Link extends Parent {
     // Specific attributes
     public title: string;
     public href: string;
-    public categoryId: number;
+    @readOnly() public categoryId: number;
     public faviconUrl?: string;
 }

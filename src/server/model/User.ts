@@ -1,3 +1,4 @@
+import { readOnly } from './ReadOnly.js';
 import { BaseModel as Parent } from './BaseModel.js';
 
 export class User extends Parent {
@@ -10,11 +11,11 @@ export class User extends Parent {
 
     // Specific attributes
     public name: string;
-    public email: string;
-    public verifiedEmail: boolean;
+    @readOnly() public email: string;
+    @readOnly() public verifiedEmail: boolean;
     public picture: string;
-    public latLong: string;
-    public city: string;
-    public region: string;
-    public country: string;
+    @readOnly() public latLong: string;
+    @readOnly() public city: string;
+    @readOnly() public region: string;
+    @readOnly() public country: string;
 }
