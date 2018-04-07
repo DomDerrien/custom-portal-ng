@@ -5,7 +5,6 @@ import { LoginTicket, TokenPayload } from 'google-auth-library/build/src/auth/lo
 import { UserService } from '../service/UserService';
 import { BaseResource } from './BaseResource';
 import { User } from '../model/User';
-import { CacheHelper } from '../utils/CacheHelper';
 import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
 const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
@@ -27,7 +26,6 @@ const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
 export class AuthResource {
     private static instance: AuthResource;
     private userService: UserService;
-    private cache: CacheHelper;
 
     // Factory method
     public static getInstance(): AuthResource {
@@ -39,7 +37,6 @@ export class AuthResource {
 
     private constructor() {
         this.userService = UserService.getInstance();
-        this.cache = CacheHelper.getInstance();
     }
 
     public getRouter(): express.Router {
@@ -52,16 +49,12 @@ export class AuthResource {
         return router;
     }
 
-    private async setupResponseAndCache(response: express.Response, user: User, sessionToken: string, newUser: boolean = false): Promise<void> {
-        await this.cache.setIt(user.id, user);
-        await this.cache.setSecondKey(sessionToken, user.id);
-        await this.cache.setSecondKey(user.email, user.id);
-
+    private async setupResponseParams(response: express.Response, userId: number, sessionToken: string, newUser: boolean = false): Promise<void> {
         response.
-            cookie('UserId', user.id, { secure: false, httpOnly: true }). // TODO: identify the local dev server for `secure:false`, default being `secure:true`
+            cookie('UserId', userId, { secure: false, httpOnly: true }). // TODO: identify the local dev server for `secure:false`, default being `secure:true`
             cookie('Token', sessionToken, { secure: false, httpOnly: true }).
             contentType('text/plain').
-            location('/api/v1/User/' + user.id).
+            location('/api/v1/User/' + userId).
             sendStatus(newUser ? 201 : 200); // HTTP status: CREATED or OK
     }
 
@@ -69,23 +62,22 @@ export class AuthResource {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             try {
                 const idToken: string = request.body.idToken;
+                const decodedToken: TokenPayload = await this.verifyIdToken(idToken);
                 const sessionToken: string = idToken.substring(Math.max(0, idToken.length - 32));
-                const decodedToken: TokenPayload = await this.verifyIdToken(request.body.idToken);
+
                 const email: string = decodedToken.email;
-                let user: User = <User>await this.cache.getIt(email);
-                if (user) {
-                    this.setupResponseAndCache(response, user, sessionToken);
-                    return;
+                const users: Array<User> = <Array<User>>await this.userService.select({ email: email }, { idOnly: false }, User.Internal);
+                if (0 < users.length) {
+                    const user: User = users[0];
+                    await this.userService.update(user.id, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+                    return this.setupResponseParams(response, user.id, sessionToken);
                 }
-                const userIds: Array<User> = <Array<User>>await this.userService.select({ email: email }, { idOnly: false }, User.Internal);
-                if (0 < userIds.length) {
-                    this.setupResponseAndCache(response, userIds[0], sessionToken);
-                    return;
-                }
-                user = Object.assign(new User(), {
+
+                const user: User = Object.assign(new User(), {
                     email: email,
                     name: decodedToken.name,
                     picture: decodedToken.picture,
+                    sessionToken: sessionToken,
                     verifiedEmail: decodedToken.email_verified
                 });
                 if (request.headers['X-AppEngine-CityLatLong']) {
@@ -95,12 +87,11 @@ export class AuthResource {
                     user.country = <string>request.headers['X-AppEngine-Country'];
                 }
                 const userId = await this.userService.create(user, User.Internal);
-                user = <User>await this.userService.get(userId, User.Internal);
-                this.setupResponseAndCache(response, user, sessionToken, true);
+                this.setupResponseParams(response, userId, sessionToken, true);
             }
             catch (error) {
                 console.log('Cannot verifiy the Google IdToken', error);
-                response.status(401).contentType('text/plain').send('TRejected authorization token!');
+                response.status(401).contentType('text/plain').send('Rejected authorization token!');
             }
         };
     }
@@ -108,8 +99,9 @@ export class AuthResource {
     public async getLoggedUser(request: express.Request): Promise<User> {
         const userId: number = parseInt(request.cookies['UserId']);
         const sessionToken: string = request.cookies['Token'];
-        if (await this.cache.getSecondKey(sessionToken) === userId) {
-            return <Promise<User>>this.cache.getIt(userId);
+        const user: User = <User>await this.userService.get(userId, User.Internal);
+        if (user.sessionToken === sessionToken) {
+            return user;
         }
         return Promise.resolve(null);
     }

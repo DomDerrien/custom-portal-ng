@@ -149,9 +149,6 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
     }
 
     public async update(id: number, candidate: Model): Promise<number> {
-        // Clean up the candidate
-        delete candidate.id; // Only the value of the parameter `id` is used
-        delete candidate.created; // No override possible
         if (!candidate.updated) {
             throw new ClientErrorException(`\`updated\` attribute for entity ${this.modelName} of key ${id} is required to avoid changes overrides!`)
         }

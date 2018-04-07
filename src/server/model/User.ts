@@ -13,6 +13,7 @@ export class User extends Parent {
     public name: string;
     @readOnly() public email: string;
     @readOnly() public verifiedEmail: boolean;
+    public sessionToken?: string;
     public picture: string;
     @readOnly() public latLong: string;
     @readOnly() public city: string;
