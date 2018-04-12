@@ -49,6 +49,7 @@ export let tmpl: HTMLTemplateElement = html`
                     required></paper-input>
                 <paper-input name="faviconUrl" type="text" label="Optional favicon URL override" auto-validate pattern="[a-zA-Z0-9.\\-:/ ?=_()+]+"
                     value="{{activeResource.faviconUrl}}"></paper-input>
+                <paper-input name="accessKey" type="text" label="Access Key"></paper-input>
             </form>
         </iron-form>
         <div class="buttons">

@@ -1,4 +1,5 @@
-import 'reflect-metadata';
+import '../../../node_modules/reflect-metadata/Reflect.js';
+// import 'reflect-metadata'; // Fully qualified path to accomodate ES6 imports
 
 const READ_ONLY_KEY = Symbol('read-only');
 

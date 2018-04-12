@@ -1,4 +1,5 @@
 import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import '../../../node_modules/@polymer/polymer/lib/elements/dom-if.js'
 import '../../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../../node_modules/@polymer/iron-icons/editor-icons.js';
@@ -51,11 +52,14 @@ export let tmpl: HTMLTemplateElement = html`
     <div class="toolbar">
         <div class="link">
             <img id="favicon" src="/images/link-black.svg" height="24" width="24">
-            <a href="{{resource.href}}" target="_blank">{{resource.title}}</a>
+            <a access-key="{{resource.accessKey}}" href="{{resource.href}}" target="_blank">{{resource.title}}</a>
         </div>
         <div class="floating-buttons">
             <paper-icon-button id="editResource" icon="editor:mode-edit" title="Edit the {{resourceName}}"></paper-icon-button>
             <paper-icon-button id="deleteResource" icon="delete" title="Delete the {{resourceName}}"></paper-icon-button>
         </div>
+        <template is="dom-if" if="{{resource.accessKey}}">
+            <div style="float: left;">({{resource.accessKey}})</div>
+        </template>
     </div>
 `;

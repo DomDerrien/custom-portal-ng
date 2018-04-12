@@ -11,12 +11,6 @@ import { OptionsJson, OptionsUrlencoded } from 'body-parser';
 import { ServeStaticOptions } from 'serve-static';
 import { Router } from 'express-serve-static-core';
 
-declare global {
-    interface FileSystemAccess {
-        statSync(path: string): fs.Stats;
-    }
-}
-
 interface ExpressBodyParser {
     json(options?: OptionsJson): RequestHandler;
     urlencoded(options?: OptionsUrlencoded): RequestHandler;
@@ -33,22 +27,25 @@ interface ExpressStatic {
 interface ExpressRouter {
     (options?: express.RouterOptions): Router
 }
+declare global {
+    interface FileSystemAccess {
+        statSync(path: string): fs.Stats;
+    }
+}
 
 class Server {
-    private static CLIENT_MAIN_PAGE_PATH: string = './src/client/index.html';
-    private static CLIENT_JS_DEPS_FOLDER: string = './dist/client';
-
-    private clientMainPage: string;
-    private fsAccess: FileSystemAccess;
     private expressApp: express.Application;
     private expressBodyParser: ExpressBodyParser;
     private expressCookieParser: ExpressCookieParser;
     private expressLogger: ExpressLogger;
     private expressStatic: ExpressStatic;
     private expressRouter: ExpressRouter;
+    private fsAccess: FileSystemAccess;
 
-    public constructor(app: express.Application = express(), bdParser: ExpressBodyParser = bodyParser, ckParser: ExpressCookieParser = cookieParser, logger: ExpressLogger = morgan,
-        serveStatic: ExpressStatic = express.static, Router: ExpressRouter = express.Router, fsAccess: FileSystemAccess = fs
+    public constructor(app: express.Application = express(), bdParser: ExpressBodyParser = bodyParser,
+        ckParser: ExpressCookieParser = cookieParser, logger: ExpressLogger = morgan,
+        serveStatic: ExpressStatic = express.static, Router: ExpressRouter = express.Router,
+        fsAccess: FileSystemAccess = fs
     ) {
         this.expressApp = app;
         this.expressBodyParser = bdParser;
@@ -59,8 +56,10 @@ class Server {
         this.fsAccess = fsAccess;
     }
 
+    private clientMainPage: string;
+
     private loadDependencies() {
-        this.clientMainPage = this.fsAccess.readFileSync(Server.CLIENT_MAIN_PAGE_PATH).toString('utf8');
+        this.clientMainPage = this.fsAccess.readFileSync(__dirname + '/../../src/client/index.html').toString('utf8');
     }
 
     private addMiddlewares() {
@@ -71,18 +70,23 @@ class Server {
         this.expressApp.use(function (req, res, next) {
             res.header('Vary', 'Origin');
             res.header('Access-Control-Allow-Origin', <string>req.headers.origin);
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only, Access-Control-Max-Age');
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only, X-Sort-By');
             res.header('Access-Control-Allow-Credentials', 'true');
             next();
         });
-        this.expressApp.use(this.expressStatic(Server.CLIENT_JS_DEPS_FOLDER, {
+        const staticOptions: ServeStaticOptions = {
             etag: true,
             immutable: true,
             index: false,
             lastModified: true,
             maxAge: 15 * 60 * 1000,
             redirect: false
-        }));
+        };
+        this.expressApp.use('/app', this.expressStatic(__dirname + '/../client/app', staticOptions));
+        this.expressApp.use('/model', this.expressStatic(__dirname + '/../client/model', staticOptions));
+        this.expressApp.use('/widgets', this.expressStatic(__dirname + '/../client/widgets', staticOptions));
+        this.expressApp.use('/fonts', this.expressStatic(__dirname + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 3000000 })));
+        this.expressApp.use('/images', this.expressStatic(__dirname + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 3000000 })));
     }
 
     private addServerRoutes() {
@@ -116,19 +120,13 @@ class Server {
         const weekdays: Array<string> = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months: Array<string> = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const out: Array<string> = [
-            weekdays[date.getDay()],
-            ', ',
-            ('' + date.getDate()).padStart(2, '0'),
-            ' ',
-            months[date.getMonth()],
-            (' ' + date.getFullYear()),
-            ' ',
-            ('' + date.getHours()).padStart(2, '0'),
-            ':',
-            ('' + date.getMinutes()).padStart(2, '0'),
-            ':',
-            ('' + date.getSeconds()).padStart(2, '0'),
-            ' GMT'
+            weekdays[date.getDay()], ', ',
+            ('' + date.getDate()).padStart(2, '0'), ' ',
+            months[date.getMonth()], ' ',
+            ('' + date.getFullYear()), ' ',
+            ('' + date.getHours()).padStart(2, '0'), ':',
+            ('' + date.getMinutes()).padStart(2, '0'), ':',
+            ('' + date.getSeconds()).padStart(2, '0'), ' GMT'
         ];
         return out.join('');
     }
@@ -142,9 +140,14 @@ class Server {
                 case 'map': response.set('Content-Type', 'application/octet-stream'); break;
                 default: console.log('******* Unsupported extension', extension, 'for', url);
             }
-            let content: string = this.replaceNodeImports(url, this.fsAccess.readFileSync('.' + url).toString('utf8'), '@polymer');
-            content = this.replaceNodeImports(url, content, '@webcomponents');
-            content = this.replaceNodeImports(url, content, '@domderrien');
+            let content: string = this.fsAccess.readFileSync('.' + url).toString('utf8');
+            const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
+            const needFiltering = -(nodeLikeModuleNames.length) < nodeLikeModuleNames.reduce((accumulator: number, moduleName: string): number => url.indexOf(moduleName), 0);
+            if (needFiltering) {
+                for (let name of nodeLikeModuleNames) {
+                    content = this.replaceNodeImports(url, content, name);
+                }
+            }
             const lastModified: Date = new Date(this.fsAccess.statSync('.' + url).mtime);
             response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
         }));
@@ -166,4 +169,8 @@ class Server {
 
 export const instanciateServer = function (): Server {
     return new Server();
+}
+
+if (process.argv[1].endsWith('/dist/server/index.js')) {
+    instanciateServer().start(Number(process.env.PORT || '8082'));
 }

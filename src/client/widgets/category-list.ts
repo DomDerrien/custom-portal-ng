@@ -148,19 +148,15 @@ export class CategoryList extends PolymerElement {
             }
             case 'PUT': {
                 (<PaperDialogElement>this.$.editDlg).close();
-                const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.activeResource.id);
-                list.items.splice(idx, 1, 0);
+                const list: { items: Array<Resource> } = <any>this.$.list;
+                const idx: number = list.items.indexOf(this.activeResource);
+                list.items.splice(idx, 1, this.activeResource);
                 list.items = list.items.slice();
-                setTimeout((): void => {
-                    list.items.splice(idx, 1, this.activeResource.id);
-                    list.items = list.items.slice();
-                }, 0);
                 break;
             }
             case 'DELETE': {
-                const list: { items: Array<number> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.activeResource.id);
+                const list: { items: Array<Resource> } = <any>this.$.list;
+                const idx: number = list.items.indexOf(this.activeResource);
                 list.items.splice(idx, 1);
                 list.items = list.items.slice();
                 break;
@@ -175,7 +171,7 @@ export class CategoryList extends PolymerElement {
         }
 
         let requestMethod: string = (<IronAjaxElement>event.target).method;
-        if (event.type === 'iron-form-response') {
+        if (event.type === 'iron-form-error') {
             requestMethod = event.target._form.method.toUpperCase() === 'GET' ? 'PUT' : 'POST';
         }
         const verbs: { [key: string]: string } = { GET: 'get', POST: 'create', PUT: 'update', DELETE: 'delete' };

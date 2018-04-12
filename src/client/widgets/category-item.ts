@@ -81,7 +81,7 @@ export class CategoryItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceChanged(resource: Resource, old: Resource): void {
+    private _resourceChanged(entity: Resource, oldEntity: Resource): void {
         (<LinkList>(<PolymerElement>this.$.linkList)).refresh();
     }
 }

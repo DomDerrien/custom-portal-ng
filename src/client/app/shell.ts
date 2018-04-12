@@ -1,10 +1,10 @@
-import { PolymerElement } from '../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
 
-import { CategoryList } from './widgets/category-list.js';
 import { tmpl } from './shell.tmpl.js';
-import { User } from './model/User.js';
-import { Category as Entity } from './model/Category.js';
-import { getLoggedUser, signOut } from './widgets/auth.js';
+import { CategoryList } from '../widgets/category-list.js';
+import { User } from '../model/User.js';
+import { Category as Entity } from '../model/Category.js';
+import { getLoggedUser, signOut } from '../widgets/auth.js';
 
 export class Shell extends PolymerElement {
     public static get is(): string {

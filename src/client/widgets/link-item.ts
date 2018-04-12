@@ -72,12 +72,12 @@ export class LinkItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceChanged(id: number, oldId: number): void {
+    private _resourceChanged(entity: Resource, oldEntity: Resource): void {
         // Set the favicon url
         if (this.resource.faviconUrl) {
             (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;
         }
-        else {
+        else if (this.resource.href) {
             let domain = this.resource.href.replace(/^https?:\/\//, '').toLowerCase();
             const slashIdx = domain.indexOf('/')
             if (-1 < slashIdx) {

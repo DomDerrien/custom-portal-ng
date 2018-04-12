@@ -1,5 +1,5 @@
 {
-    "extends": "../../tsconfig",
+    "extends": "../tsconfig",
     "compilerOptions": {
         "baseUrl": "../../",
         "module": "commonjs",
@@ -7,7 +7,7 @@
         "outDir": "../../dist/server"
     },
     "include": [
-        "./*.ts",
+        "./**/*.ts",
         "../typings.d.ts"
     ]
 }
