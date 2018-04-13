@@ -142,7 +142,7 @@ class Server {
             }
             let content: string = this.fsAccess.readFileSync('.' + url).toString('utf8');
             const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
-            const needFiltering = -(nodeLikeModuleNames.length) < nodeLikeModuleNames.reduce((accumulator: number, moduleName: string): number => url.indexOf(moduleName), 0);
+            const needFiltering: boolean = nodeLikeModuleNames.reduce((accumulator: boolean, moduleName: string): boolean => accumulator || -1 < url.indexOf(moduleName), false);
             if (needFiltering) {
                 for (let name of nodeLikeModuleNames) {
                     content = this.replaceNodeImports(url, content, name);

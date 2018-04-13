@@ -29,6 +29,8 @@ export class CategoryList extends PolymerElement {
     private sortBy: string = '+title';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
+    private _addDialogStillLocal: boolean = true;
+    private _editDialogStillLocal: boolean = true;
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         const ajaxSuccessHandler = this._processAjaxResponse.bind(this);
@@ -53,6 +55,10 @@ export class CategoryList extends PolymerElement {
             [<any>this, 'edit-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
                 this.activeResource = event.detail.resource;
+                if (this._editDialogStillLocal) {
+                    document.querySelector('body').appendChild(this.$.editDlg);
+                    this._editDialogStillLocal = false;
+                }
                 (<PaperDialogElement>this.$.editDlg).open();
             }],
             [this.$.editDlgClose, 'click', (event: MouseEvent): void => {
@@ -123,6 +129,10 @@ export class CategoryList extends PolymerElement {
     }
 
     public openAddDlg(): void {
+        if (this._addDialogStillLocal) {
+            document.querySelector('body').appendChild(this.$.addDlg);
+            this._addDialogStillLocal = false;
+        }
         (<PaperDialogElement>this.$.addDlg).open();
     }
 

@@ -53,11 +53,6 @@ export let tmpl: HTMLTemplateElement = html`
                 grid-template-columns: repeat(1, 1fr);
             }
         }
-    
-        #addDlg,
-        #editDlg {
-            min-width: calc(260px + 2 * 40px);
-        }
     </style>
     
     <dom-repeat id="list" items="{{resources}}">
@@ -68,7 +63,7 @@ export let tmpl: HTMLTemplateElement = html`
     
     <iron-ajax id="remote" auto handle-as="json" with-credentials="true"></iron-ajax>
     
-    <paper-dialog id="addDlg">
+    <paper-dialog id="addDlg" modal role="alertdialog">
         <h2>Add a {{resourceName}}</h2>
         <iron-form id="addForm">
             <form action="{{baseRepoUrl}}{{resourceName}}" method="POST" enctype="application/json">
@@ -93,7 +88,7 @@ export let tmpl: HTMLTemplateElement = html`
         </div>
     </paper-dialog>
     
-    <paper-dialog id="editDlg">
+    <paper-dialog id="editDlg" modal role="alertdialog">
         <h2>Edit the {{resourceName}}</h2>
         <iron-form id="editForm">
             <form action="{{baseRepoUrl}}{{resourceName}}/{{activeResource.id}}" method="PUT" enctype="application/json">
