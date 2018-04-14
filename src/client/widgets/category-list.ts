@@ -1,4 +1,4 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './category-list.tmpl.js';
 import { Category as Resource } from '../model/Category.js';
@@ -20,13 +20,10 @@ export class CategoryList extends PolymerElement {
         };
     }
 
-    private $: { [key: string]: HTMLElement };
-
     private readonly baseRepoUrl: string = '/api/v1/';
     private activeResource: Resource;
     private resources: Array<Resource>;
     private readonly resourceName: string = 'Category';
-    private sortBy: string = '+title';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
     private _addDialogStillLocal: boolean = true;

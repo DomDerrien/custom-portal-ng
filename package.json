@@ -36,6 +36,7 @@
         "@types/cookie-parser": "latest",
         "@types/express": "latest",
         "@types/google-cloud__datastore": "latest",
+        "@types/morgan": "latest",
         "@types/node": "latest",
         "@types/node-fetch": "latest",
         "concurrently": "latest",

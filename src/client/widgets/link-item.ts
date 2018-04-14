@@ -1,4 +1,4 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './link-item.tmpl.js';
 import { Link as Resource } from '../model/Link.js';
@@ -23,11 +23,7 @@ export class LinkItem extends PolymerElement {
         };
     }
 
-    private $: { [key: string]: HTMLElement };
-
-    private readonly baseRepoUrl: string = '/api/v1/';
     private resource: Resource;
-    private readonly resourceName: string = 'Link';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
@@ -72,7 +68,7 @@ export class LinkItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceChanged(entity: Resource, oldEntity: Resource): void {
+    protected _resourceChanged(entity: Resource, oldEntity: Resource): void {
         // Set the favicon url
         if (this.resource.faviconUrl) {
             (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;

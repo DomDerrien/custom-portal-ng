@@ -1,11 +1,9 @@
-import { Category as Parent, Category } from '../model/Category';
 import { Link as Model } from '../model/Link';
 import { User } from '../model/User';
 import { QueryOptions } from '../dao/BaseDao';
 import { LinkDao as DAO } from '../dao/LinkDao';
 import { BaseService } from './BaseService';
 import { CategoryService as ParentService } from './CategoryService';
-import { NotFoundException } from '../exceptions/NotFoundException';
 import { ClientErrorException } from '../exceptions/ClientErrorException';
 
 export class LinkService extends BaseService<DAO> {

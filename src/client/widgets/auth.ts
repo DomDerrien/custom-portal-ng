@@ -1,4 +1,4 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './auth.tmpl.js';
 
@@ -84,8 +84,6 @@ export class AuthenticationController extends PolymerElement {
     public static get template(): HTMLTemplateElement {
         return tmpl;
     }
-
-    private $: { [key: string]: HTMLElement };
 
     public ready(): void {
         super.ready();
@@ -195,7 +193,7 @@ export class AuthenticationController extends PolymerElement {
                         scope: 'profile'
                     });
                     auth2Lib.attachClickHandler(this.$.googleLoginBtn, {},
-                        (googleUser) => {
+                        (googleUser: { getAuthResponse: () => { id_token: string } }) => {
                             this._useGoogleIdTokenForAuth(googleUser.getAuthResponse().id_token);
                         },
                         (error: any) => {

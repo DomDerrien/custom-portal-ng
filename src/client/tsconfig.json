@@ -1,14 +1,18 @@
 {
     "extends": "../tsconfig",
     "compilerOptions": {
-        "baseUrl": "../../",
         "module": "esnext",
         "rootDir": "./",
         "outDir": "../../dist/client",
         "lib": [
             "esnext",
             "dom"
-        ]
+        ],
+        "paths": {
+            "@polymer/*": [
+                "node_modules/@polymer/*"
+            ]
+        }
     },
     "include": [
         "./**/*.ts",

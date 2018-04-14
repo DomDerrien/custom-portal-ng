@@ -4,8 +4,6 @@ import { CategoryDao as DAO } from '../dao/CategoryDao';
 import { BaseService } from './BaseService';
 import { LinkService as ChildService } from './LinkService';
 import { Category as Model } from '../model/Category';
-import { NotFoundException } from '../exceptions/NotFoundException';
-import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
 export class CategoryService extends BaseService<DAO> {
     private static instance: CategoryService;

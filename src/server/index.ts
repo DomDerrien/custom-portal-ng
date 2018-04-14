@@ -1,5 +1,4 @@
 import * as express from 'express';
-import * as morgan from 'morgan';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as fs from 'fs';
@@ -10,6 +9,7 @@ import { RequestHandler } from 'express';
 import { OptionsJson, OptionsUrlencoded } from 'body-parser';
 import { ServeStaticOptions } from 'serve-static';
 import { Router } from 'express-serve-static-core';
+import { BaseResource } from './resource/BaseResource';
 
 interface ExpressBodyParser {
     json(options?: OptionsJson): RequestHandler;
@@ -37,20 +37,17 @@ class Server {
     private expressApp: express.Application;
     private expressBodyParser: ExpressBodyParser;
     private expressCookieParser: ExpressCookieParser;
-    private expressLogger: ExpressLogger;
     private expressStatic: ExpressStatic;
     private expressRouter: ExpressRouter;
     private fsAccess: FileSystemAccess;
 
     public constructor(app: express.Application = express(), bdParser: ExpressBodyParser = bodyParser,
-        ckParser: ExpressCookieParser = cookieParser, logger: ExpressLogger = morgan,
-        serveStatic: ExpressStatic = express.static, Router: ExpressRouter = express.Router,
-        fsAccess: FileSystemAccess = fs
+        ckParser: ExpressCookieParser = cookieParser, serveStatic: ExpressStatic = express.static,
+        Router: ExpressRouter = express.Router, fsAccess: FileSystemAccess = fs
     ) {
         this.expressApp = app;
         this.expressBodyParser = bdParser;
         this.expressCookieParser = ckParser;
-        this.expressLogger = logger;
         this.expressStatic = serveStatic;
         this.expressRouter = Router;
         this.fsAccess = fsAccess;
@@ -63,7 +60,6 @@ class Server {
     }
 
     private addMiddlewares() {
-        this.expressApp.use(this.expressLogger('dev')); // See https://github.com/expressjs/morgan
         this.expressApp.use(this.expressBodyParser.json());
         this.expressApp.use(this.expressBodyParser.urlencoded({ extended: false }));
         this.expressApp.use(this.expressCookieParser());
@@ -82,17 +78,18 @@ class Server {
             maxAge: 15 * 60 * 1000,
             redirect: false
         };
-        this.expressApp.use('/app', this.expressStatic(__dirname + '/../client/app', staticOptions));
-        this.expressApp.use('/model', this.expressStatic(__dirname + '/../client/model', staticOptions));
-        this.expressApp.use('/widgets', this.expressStatic(__dirname + '/../client/widgets', staticOptions));
+        // this.expressApp.use('/app', this.expressStatic(__dirname + '/../client/app', staticOptions));
         this.expressApp.use('/fonts', this.expressStatic(__dirname + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 3000000 })));
         this.expressApp.use('/images', this.expressStatic(__dirname + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 3000000 })));
+        this.expressApp.use('/model', this.expressStatic(__dirname + '/../client/model', staticOptions));
+        // this.expressApp.use('/widgets', this.expressStatic(__dirname + '/../client/widgets', staticOptions));
     }
 
     private addServerRoutes() {
-        for (let resourceName in resources) {
+        const resourceClasses: { [key: string]: typeof BaseResource } = <any>resources;
+        for (let resourceName in resourceClasses) {
             // Register the router provided by each concrete implementation of BaseResource
-            this.expressApp.use(resources[resourceName].getInstance().getRouter());
+            this.expressApp.use(resourceClasses[resourceName].getInstance().getRouter());
         }
     }
 
@@ -100,9 +97,10 @@ class Server {
         const importRE: RegExp = new RegExp(`(?:'|")${pattern}/`, 'g');
         if (importRE.test(content)) {
             // Identify the request elements
+            // TODO: for the app files which url doesn't start by /node_modules/, count the number of folder from the root
+            // TODO: the following piece of code produce paths that can go too way up which is correctly handled by browser -- however it's inelegant and must be fixed!
             let sourceFolder: string = url.substring('/node_modules/'.length);
             let slashIdx: number = sourceFolder.indexOf('/');
-            const componentName: string = sourceFolder.substring(0, slashIdx);
             sourceFolder = sourceFolder.substring(slashIdx + 1);
             // Count how deep is the requester
             slashIdx = -1;
@@ -132,6 +130,14 @@ class Server {
     }
 
     private addClientRoutes() {
+        this.expressApp.use(this.expressRouter().get(/^\/(?:app|widgets)\//, (request: express.Request, response: express.Response): void => {
+            const url: string = request.url;
+            const filePath: string = './dist/client' + url;
+            let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
+            content = this.replaceNodeImports(url, content, '@polymer'); // Just one shortcut to process in the application files
+            const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
+            response.set({ 'Content-Type': 'application/javascript', 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+        }));
         this.expressApp.use(this.expressRouter().get('/node_modules/*', (request: express.Request, response: express.Response): void => {
             const url: string = request.url;
             const extension: string = url.substring(url.lastIndexOf('.') + 1);
@@ -140,7 +146,8 @@ class Server {
                 case 'map': response.set('Content-Type', 'application/octet-stream'); break;
                 default: console.log('******* Unsupported extension', extension, 'for', url);
             }
-            let content: string = this.fsAccess.readFileSync('.' + url).toString('utf8');
+            const filePath: string = '.' + url;
+            let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
             const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
             const needFiltering: boolean = nodeLikeModuleNames.reduce((accumulator: boolean, moduleName: string): boolean => accumulator || -1 < url.indexOf(moduleName), false);
             if (needFiltering) {
@@ -148,8 +155,8 @@ class Server {
                     content = this.replaceNodeImports(url, content, name);
                 }
             }
-            const lastModified: Date = new Date(this.fsAccess.statSync('.' + url).mtime);
-            response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+            const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
+            response.set({ 'Content-Type': 'application/javascript', 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
         }));
         this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {
             response.set('Content-Type', 'text/html');

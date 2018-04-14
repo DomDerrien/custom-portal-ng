@@ -20,7 +20,7 @@ export class BaseModel {
         return BaseModel.merge(this, update);
     }
 
-    public static merge(source: BaseModel, update: BaseModel): boolean {
+    public static merge(source: any, update: any): boolean {
         let updated = false;
 
         if (typeof source === 'object' && typeof update === 'object') {
@@ -29,19 +29,19 @@ export class BaseModel {
                     continue;
                 }
 
-                const sourceValue = source[key];
-                const updateValue = update[key];
+                const sourceValue: any = source[key];
+                const updateValue: any = update[key];
 
                 if (updateValue !== undefined) {
                     if (typeof updateValue === 'object' && !Array.isArray(updateValue)) {
                         updated = BaseModel.merge(sourceValue, updateValue) || updated;
                     }
                     else if (Array.isArray(updateValue)) {
-                        let sameArray = sourceValue !== undefined && Array.isArray(sourceValue) && sourceValue.length === updateValue.length;
-                        let idx = 0;
+                        let sameArray: boolean = sourceValue !== undefined && Array.isArray(sourceValue) && sourceValue.length === updateValue.length;
+                        let idx: number = 0;
                         while (sameArray && idx < updateValue.length) {
-                            let sourceCellValue = sourceValue[idx];
-                            let updateCellValue = updateValue[idx];
+                            let sourceCellValue: any = sourceValue[idx];
+                            let updateCellValue: any = updateValue[idx];
                             if (updateCellValue !== undefined && typeof updateCellValue === 'object' && Object.keys(updateCellValue).length && !Array.isArray(updateCellValue)) {
                                 sameArray = !BaseModel.merge(sourceCellValue, updateCellValue);
                             }

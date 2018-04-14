@@ -1,4 +1,4 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './link-list.tmpl.js';
 import { Link as Resource } from '../model/Link.js';
@@ -19,8 +19,6 @@ export class LinkList extends PolymerElement {
             resourceName: String,
         };
     }
-
-    private $: { [key: string]: HTMLElement };
 
     private readonly baseRepoUrl: string = '/api/v1/';
     private categoryId: string;

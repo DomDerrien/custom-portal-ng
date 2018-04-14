@@ -1,11 +1,11 @@
-import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '../../../node_modules/@polymer/app-layout/app-header/app-header.js';
-import '../../../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '../../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../node_modules/@polymer/paper-toast/paper-toast.js';
-import '../../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../../node_modules/@polymer/paper-button/paper-button.js';
+import { html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-toast/paper-toast.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-button/paper-button.js';
 
 import '../widgets/auth.js';
 import '../widgets/category-list.js';

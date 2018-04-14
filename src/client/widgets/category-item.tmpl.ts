@@ -1,9 +1,9 @@
-import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../../node_modules/@polymer/app-layout/app-header/app-header.js';
-import '../../../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '../../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../../../node_modules/@polymer/iron-icons/editor-icons.js';
+import { html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/editor-icons.js';
 
 import './link-list.js';
 

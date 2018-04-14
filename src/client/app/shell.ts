@@ -1,9 +1,8 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './shell.tmpl.js';
 import { CategoryList } from '../widgets/category-list.js';
 import { User } from '../model/User.js';
-import { Category as Entity } from '../model/Category.js';
 import { getLoggedUser, signOut } from '../widgets/auth.js';
 
 export class Shell extends PolymerElement {
@@ -20,8 +19,6 @@ export class Shell extends PolymerElement {
         };
     }
 
-    private $: { [key: string]: HTMLElement };
-
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
@@ -30,7 +27,7 @@ export class Shell extends PolymerElement {
                 signOut();
             }],
             [this.$.addEntity, 'click', (event: MouseEvent): void => {
-                (<CategoryList>(<PolymerElement>this.$.categoryList)).openAddDlg();
+                (<CategoryList>(<any>this.$.categoryList)).openAddDlg();
             }],
             [<any>this, 'show-dialog', (event: CustomEvent): void => { event.stopPropagation(); this._showDialogFeedback(event.detail.text); }],
             [<any>this, 'show-notification', (event: CustomEvent): void => { event.stopPropagation(); this._showToastFeedback(event.detail.text, event.detail.duration); }],
@@ -73,7 +70,7 @@ export class Shell extends PolymerElement {
 
             this.$.splashScreen.style.display = 'none';
             this.$.categoryList.style.display = 'grid';
-            (<CategoryList>(<PolymerElement>this.$.categoryList)).refresh();
+            (<CategoryList>(<any>this.$.categoryList)).refresh();
 
             if (loggedUser.picture) {
                 const image = document.createElement('img');

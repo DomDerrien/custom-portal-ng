@@ -1,10 +1,3 @@
-import * as fs from 'fs';
-import * as Datastore from '@google-cloud/datastore';
-import { CommitResponse, CommitResult, MutationResult } from '@google-cloud/datastore/request';
-import { QueryResult, Query, MoreResultsAfterCursor, MoreResultsAfterLimit, NoMoreResults, QueryFilterOperator, QueryInfo } from '@google-cloud/datastore/query';
-import { DatastoreKey } from '@google-cloud/datastore/entity';
-import { DatastoreTransaction, TransactionResult } from '@google-cloud/datastore/transaction';
-
 import { BaseModel as Model } from '../model/BaseModel';
 
 interface TModelConstructor<T extends Model> {
@@ -28,7 +21,7 @@ export abstract class BaseDao<T extends Model> {
 
     protected model: T;
 
-    public constructor(model: T, Store: any = Datastore, fsAccess: FileSystemAccess = fs) {
+    public constructor(model: T) {
         this.model = model;
     }
 

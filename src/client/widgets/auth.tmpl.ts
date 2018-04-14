@@ -1,4 +1,4 @@
-import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { html } from '@polymer/polymer/polymer-element.js';
 
 export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">

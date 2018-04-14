@@ -1,9 +1,8 @@
-import { PolymerElement } from '../../../node_modules/@polymer/polymer/polymer-element.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './category-item.tmpl.js';
 import { LinkList } from './link-list.js';
 import { Category as Resource } from '../model/Category.js';
-import { Link as Entity } from '../model/Link.js';
 
 export class CategoryItem extends PolymerElement {
     public static get is(): string {
@@ -27,20 +26,14 @@ export class CategoryItem extends PolymerElement {
         };
     }
 
-    private $: { [key: string]: HTMLElement };
-
-    private readonly baseRepoUrl: string = '/api/v1/';
-    private readonly entityName: string = 'Link';
     private resource: Resource;
-    private readonly resourceName: string = 'Category';
-    private sortBy: string;
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         return [
             [this.$.addEntity, 'click', (event: MouseEvent): void => {
-                (<LinkList>(<PolymerElement>this.$.linkList)).openAddDlg();
+                (<LinkList>(<any>this.$.linkList)).openAddDlg();
             }],
             [this.$.editResource, 'click', (event: MouseEvent): void => {
                 (<EventTarget>(<any>this)).dispatchEvent(new CustomEvent('edit-resource', { bubbles: true, composed: true, detail: { resource: this.resource } }));
@@ -81,8 +74,8 @@ export class CategoryItem extends PolymerElement {
         this._removeEventListeners();
     }
 
-    private _resourceChanged(entity: Resource, oldEntity: Resource): void {
-        (<LinkList>(<PolymerElement>this.$.linkList)).refresh();
+    protected _resourceChanged(entity: Resource, oldEntity: Resource): void {
+        (<LinkList>(<any>this.$.linkList)).refresh();
     }
 }
 

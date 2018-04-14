@@ -3,9 +3,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { LoginTicket, TokenPayload } from 'google-auth-library/build/src/auth/loginticket';
 
 import { UserService } from '../service/UserService';
-import { BaseResource } from './BaseResource';
 import { User } from '../model/User';
-import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
 const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     cityLatLong: 'X-AppEngine-CityLatLong',
@@ -80,11 +78,11 @@ export class AuthResource {
                     sessionToken: sessionToken,
                     verifiedEmail: decodedToken.email_verified
                 });
-                if (request.headers['X-AppEngine-CityLatLong']) {
-                    user.latLong = <string>request.headers['X-AppEngine-CityLatLong'];
-                    user.city = <string>request.headers['X-AppEngine-City'];
-                    user.region = <string>request.headers['X-AppEngine-Region'];
-                    user.country = <string>request.headers['X-AppEngine-Country'];
+                if (request.headers[GAE_STANDARD_HEADER_NAMES.CityLatLong]) {
+                    user.latLong = <string>request.headers[GAE_STANDARD_HEADER_NAMES.CityLatLong];
+                    user.city = <string>request.headers[GAE_STANDARD_HEADER_NAMES.City];
+                    user.region = <string>request.headers[GAE_STANDARD_HEADER_NAMES.Region];
+                    user.country = <string>request.headers[GAE_STANDARD_HEADER_NAMES.Country];
                 }
                 const userId = await this.userService.create(user, User.Internal);
                 this.setupResponseParams(response, userId, sessionToken, true);

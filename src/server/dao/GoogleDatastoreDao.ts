@@ -30,12 +30,12 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
     }
 
     public prepareModelInstance(attributes: object = undefined): T {
-        const instance = this.modelInstance;
+        const instance: T = this.modelInstance;
         if (attributes) {
             const keyName: symbol = this.store.KEY;
             const key: DatastoreKey = (<any>attributes)[keyName];
             const id: number = key ? Number(key.id) : undefined;
-            delete attributes[keyName];
+            delete (<any>attributes)[keyName];
             delete (<any>attributes).id;
             Object.assign(instance, attributes, {
                 id: id
@@ -45,7 +45,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
     }
 
     public async get(id: number): Promise<T> {
-        return this.store.get(this.store.key([this.modelName, id])).then((result: object) => this.prepareModelInstance(result[0]));
+        return this.store.get(this.store.key([this.modelName, id])).then((result: object) => this.prepareModelInstance((<QueryResult>result)[0]));
     }
 
     private prepareStandardQuery(filters: { [key: string]: string }, options: QueryOptions): Query {

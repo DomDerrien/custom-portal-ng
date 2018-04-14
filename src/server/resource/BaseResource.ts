@@ -10,7 +10,7 @@ import { AuthResource } from './AuthResource';
 export class BaseResource<T extends Service<DAO<Model>>> {
 
     protected apiVersion: number = 1; // Default version
-    protected service: Service<DAO<Model>>;
+    protected service: T;
     protected authResource: AuthResource;
 
     // Factory method -- cannot be `abstract` because it's a public method
@@ -18,7 +18,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
         throw new Error('Must be overriden!');
     }
 
-    protected constructor(service: Service<DAO<Model>>) {
+    protected constructor(service: T) {
         this.service = service;
         this.authResource = AuthResource.getInstance();
     }

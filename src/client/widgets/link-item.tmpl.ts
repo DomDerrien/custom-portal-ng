@@ -1,8 +1,8 @@
-import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../../node_modules/@polymer/polymer/lib/elements/dom-if.js'
-import '../../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../../../node_modules/@polymer/iron-icons/editor-icons.js';
+import { html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/polymer/lib/elements/dom-if.js'
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/editor-icons.js';
 
 export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">

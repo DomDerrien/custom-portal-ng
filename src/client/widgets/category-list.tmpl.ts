@@ -1,12 +1,12 @@
-import { html } from '../../../node_modules/@polymer/polymer/polymer-element.js';
-import '../../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../../node_modules/@polymer/iron-form/iron-form.js';
-import '../../../node_modules/@polymer/paper-input/paper-input.js';
-import '../../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../../node_modules/@polymer/paper-listbox/paper-listbox.js';
-import '../../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../../node_modules/@polymer/paper-button/paper-button.js';
+import { html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/iron-form/iron-form.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-button/paper-button.js';
 
 import './category-item.js';
 

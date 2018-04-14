@@ -1,11 +1,11 @@
 // Valid in Typescript 2+, not supported in ES6
-declare module "*.html" {
+declare module '*.html' {
     const html: string;
     export default html;
 }
 
-declare module "*.json" {
-    const json: string;
+declare module '*.json' {
+    const json: { [key: string]: any };
     export default json;
 }
 
@@ -24,17 +24,28 @@ interface FileSystemAccess {
     writeFileSync(path: string, data: any, options?: any): void;
 }
 
+declare module '@polymer/polymer/polymer-element.js' {
+    export class PolymerElement {
+        constructor();
+        $: { [key: string]: HTMLElement };
+        connectedCallback(): void;
+        disconnectedCallback(): void;
+        ready(): void;
+    }
+    export const html: (strings: TemplateStringsArray, ...values: Array<any>) => HTMLTemplateElement;
+}
+
 interface CustomEventInit {
     composed: boolean;
 }
 
 interface ExtendableEvent extends Event {
-    waitUntil(Promise): void;
+    waitUntil(promise: Promise<any>): void;
 }
 
 interface FetchEvent extends Event {
     request: RequestInfo;
-    respondWith(Promise): void;
+    respondWith(promise: Promise<any>): void;
 }
 
 interface IFrameElement extends HTMLElement {

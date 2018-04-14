@@ -5,14 +5,14 @@ import { NotFoundException } from '../exceptions/NotFoundException';
 import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
 
 export class BaseService<T extends DAO<Model>> {
-    protected dao: DAO<Model>;
+    protected dao: T;
 
     // Factory method -- cannot be `abstract` because it's a public method
     public static getInstance(): BaseService<DAO<Model>> {
         throw new Error('Must be overriden!');
     }
 
-    protected constructor(dao: DAO<Model>) {
+    protected constructor(dao: T) {
         this.dao = dao;
     }
 
