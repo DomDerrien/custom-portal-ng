@@ -18,9 +18,6 @@ interface ExpressBodyParser {
 interface ExpressCookieParser {
     (secret?: string | string[], options?: cookieParser.CookieParseOptions): express.RequestHandler;
 }
-interface ExpressLogger {
-    (format: string | Function, options?: object): RequestHandler;
-}
 interface ExpressStatic {
     (root: string, options?: ServeStaticOptions): express.Handler
 }

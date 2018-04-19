@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as Datastore from '@google-cloud/datastore';
 import { CommitResponse, CommitResult, MutationResult } from '@google-cloud/datastore/request';
 import { QueryResult, Query, MoreResultsAfterCursor, MoreResultsAfterLimit, NoMoreResults, QueryFilterOperator, QueryInfo } from '@google-cloud/datastore/query';
@@ -10,26 +9,15 @@ import { BaseModel as Model } from '../model/BaseModel';
 import { ClientErrorException } from '../exceptions/ClientErrorException';
 import { ServerErrorException } from '../exceptions/ServerErrorException';
 
-// TODO: replace by the setup of the environment variable GOOGLE_APPLICATION_CREDENTIALS
-function getDatastoreCredentialsFilename(fsAccess: FileSystemAccess): string | undefined {
-    const filename: string = '../fav-list-datastore-access.json';
-    if (fsAccess.existsSync(filename)) {
-        return filename;
-    }
-    return undefined;
-}
-
 export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
-    protected store: Datastore;
+    private store: Datastore;
 
-    public constructor(model: T, Store: any = Datastore, fsAccess: FileSystemAccess = fs) {
+    protected constructor(model: T, Store: any = Datastore) {
         super(model);
-        this.store = new Store({
-            keyFilename: getDatastoreCredentialsFilename(fsAccess)
-        });
+        this.store = new Store({}); // Initialization relies on the environment variable GOOGLE_APPLICATION_CREDENTIALS to locate the service account file
     }
 
-    public prepareModelInstance(attributes: object = undefined): T {
+    private prepareModelInstance(attributes: object = undefined): T {
         const instance: T = this.modelInstance;
         if (attributes) {
             const keyName: symbol = this.store.KEY;
@@ -61,15 +49,18 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
             else {
                 let operator: QueryFilterOperator = '=';
                 let value: string = filters[key];
-                const operatorlDef: RegExpExecArray = /^(=|<=?|>=?)(.+)/.exec(value);
+                const operatorlDef: RegExpExecArray = /^(=|<=?|>=?)(.*)/.exec(value);
                 if (operatorlDef !== null) {
                     operator = <QueryFilterOperator>operatorlDef[1];
                     value = operatorlDef[2];
                     if (operator.charAt(0) !== '=') {
+                        if (inequalityKey !== null) {
+                            throw new ClientErrorException(`Only one inequality is allowed!`);
+                        }
                         inequalityKey = key;
                     }
                 }
-                query.filter(key, operator, /\d+/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value);
+                query.filter(key, operator, /^\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value);
                 if (inequalityKey === key) {
                     // TODO: check the `sortBy` list
                     // TODO: remove the key from this list
@@ -83,7 +74,7 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
                 if (1 < order.length) {
                     const directionChar: string = order.charAt(0);
                     if (directionChar !== '+' && directionChar !== '-') {
-                        throw new ClientErrorException(`Value ${order} of filter \'_order\` must start by \`+\` or \`-\``);
+                        throw new ClientErrorException(`Value ${order} of option 'sortBy' must start by '+' or '-'`);
                     }
                     query.order(order.substring(1), { descending: directionChar === '-' });
                 }
@@ -153,8 +144,8 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
             throw new ClientErrorException(`\`updated\` attribute for entity ${this.modelName} of key ${id} is required to avoid changes overrides!`)
         }
         // Initiate a transaction
-        const transaction: DatastoreTransaction = this.store.transaction();
         const key: DatastoreKey = this.store.key([this.modelName, id]);
+        const transaction: DatastoreTransaction = this.store.transaction();
         return transaction.run().
             // Get the identified entity
             then((result: TransactionResult): Promise<Array<object>> => result[0].get(key)).

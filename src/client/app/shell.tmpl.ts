@@ -8,7 +8,7 @@ import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/paper-button/paper-button.js';
 
 import '../widgets/auth.js';
-import '../widgets/category-list.js';
+// import '../widgets/category-list.js'; // import dynamically once the user is logged in
 
 export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">
@@ -55,7 +55,7 @@ export let tmpl: HTMLTemplateElement = html`
                     <portal-auth></portal-auth>
                 </div>
             </div>
-            <portal-category-list id="categoryList" class="content"></portal-category-list>
+            <portal-category-list id="categoryList" style="display: none;"></portal-category-list>
         </div>
         <div style="font-size:12px; position: fixed; bottom: 2px; right: 10px;">
             [bookmarklet:

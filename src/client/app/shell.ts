@@ -1,7 +1,7 @@
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 
 import { tmpl } from './shell.tmpl.js';
-import { CategoryList } from '../widgets/category-list.js';
+import { CategoryList } from '../widgets/category-list.js'; // Just imported for the type definition, used by the Typescript compiler. File will be loaded dynamically once the user is logged in.
 import { User } from '../model/User.js';
 import { getLoggedUser, signOut } from '../widgets/auth.js';
 
@@ -65,19 +65,24 @@ export class Shell extends PolymerElement {
     public ready(): void {
         super.ready();
 
-        getLoggedUser().then((loggedUser: User): void => {
-            this._addEventListeners();
+        getLoggedUser().
+            then((loggedUser: User): any => {
+                this._addEventListeners();
 
-            this.$.splashScreen.style.display = 'none';
-            this.$.categoryList.style.display = 'grid';
-            (<CategoryList>(<any>this.$.categoryList)).refresh();
+                if (loggedUser.picture) {
+                    const image = document.createElement('img');
+                    image.src = loggedUser.picture;
+                    this.$.avatar.appendChild(image);
+                }
 
-            if (loggedUser.picture) {
-                const image = document.createElement('img');
-                image.src = loggedUser.picture;
-                this.$.avatar.appendChild(image);
-            }
-        });
+                // Delayed import of the category list widget (and category item, link list, link item, etc.)
+                return import('../widgets/category-list.js');
+            }).
+            then((module: any): void => {
+                this.$.splashScreen.style.display = 'none';
+                this.$.categoryList.style.display = 'grid';
+                (<CategoryList>(<any>this.$.categoryList)).refresh();
+            });
     }
 
     private _showToastFeedback(text: string, duration: number = 3000): void {

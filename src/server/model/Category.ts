@@ -10,5 +10,4 @@ export class Category extends Parent {
     public title: string;
     public positionIdx: number = 0;
     public sortBy: string;
-    public userId: number;
 }

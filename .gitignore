@@ -1,6 +1,6 @@
 .vscode
 .DS_Store
-_
+coverage
 dist
 node_modules
 src/client/model

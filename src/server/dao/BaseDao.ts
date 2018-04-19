@@ -19,13 +19,13 @@ export abstract class BaseDao<T extends Model> {
         throw new Error('Must be overriden!');
     }
 
-    protected model: T;
+    private model: T;
 
-    public constructor(model: T) {
+    protected constructor(model: T) {
         this.model = model;
     }
 
-    protected get modelClass(): TModelConstructor<T> {
+    public get modelClass(): TModelConstructor<T> {
         return <TModelConstructor<T>>this.model.constructor;
     }
 

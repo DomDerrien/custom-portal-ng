@@ -1,0 +1,16 @@
+{
+    "bail": false,
+    "debug": false,
+    "grep": ".*",
+    "suites": "./dist/unit/**/*.js",
+    "coverage": "./dist/server/**/*.js",
+    "reporters": [
+        {
+            "name": "pretty",
+            "_name": "simple"
+        },
+        {
+            "name": "htmlcoverage"
+        }
+    ]
+}

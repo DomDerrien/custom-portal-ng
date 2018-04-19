@@ -39,6 +39,7 @@
         "@types/morgan": "latest",
         "@types/node": "latest",
         "@types/node-fetch": "latest",
+        "@types/sinon": "latest",
         "concurrently": "latest",
         "intern": "latest",
         "nodemon": "latest",
@@ -48,9 +49,9 @@
         "typescript": "latest"
     },
     "scripts": {
-        "clean": "rm -rf node_modules dist package-lock.json",
+        "clean": "rm -rf node_modules coverage dist package-lock.json",
         "init": "popd ./src/client/; ln -s ../server/model/ .; popd",
-        "watch": "concurrently --names \"server,client\" -c \"bgBlue,black.bgGreen\" \"tsc -p ./src/server --watch\" \"tsc -p ./src/client --watch\"",
+        "watch": "concurrently --names 'server,client, unit ' -c 'bgBlue,black.bgGreen,black.bgYellow' 'tsc -p ./src/server --watch' 'tsc -p ./src/client --watch' 'tsc -p ./src/unit --watch'",
         "dev": "nodemon -r source-map-support/register ./dist/server/index.js --watch ./dist/server",
         "start": "node ./dist/server/index.js",
         "test": "intern",
