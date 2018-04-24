@@ -6,8 +6,8 @@
     "coverage": "./dist/server/**/*.js",
     "reporters": [
         {
-            "name": "pretty",
-            "_name": "simple"
+            "-name": "pretty",
+            "name": "simple"
         },
         {
             "name": "htmlcoverage"

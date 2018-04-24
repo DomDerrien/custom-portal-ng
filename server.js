@@ -1,1 +1,0 @@
-require('./dist/server/index.js').instanciateServer().start(process.env.PORT || 8082);

@@ -8,6 +8,6 @@ export class Category extends Parent {
 
     // Specific attributes
     public title: string;
-    public positionIdx: number = 0;
+    public positionIdx: number;
     public sortBy: string;
 }

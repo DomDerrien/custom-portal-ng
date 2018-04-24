@@ -1,4 +1,5 @@
 import { BaseModel as Model } from '../model/BaseModel';
+import { ServerErrorException } from '../exceptions/ServerErrorException';
 
 interface TModelConstructor<T extends Model> {
     new(): T;
@@ -16,7 +17,7 @@ export interface QueryOptions {
 export abstract class BaseDao<T extends Model> {
     // Factory method -- cannot be `abstract` because it's a public method
     public static getInstance(): BaseDao<Model> {
-        throw new Error('Must be overriden!');
+        throw new ServerErrorException('Must be overriden!');
     }
 
     private model: T;
@@ -39,7 +40,7 @@ export abstract class BaseDao<T extends Model> {
 
     public abstract async get(id: number): Promise<T>;
     public abstract async query(filters: { [key: string]: any }, options: QueryOptions): Promise<Array<T>>;
-    public abstract async create(candidate: Model): Promise<number>;
-    public abstract async update(id: number, candidate: Model): Promise<number>;
+    public abstract async create(candidate: T): Promise<number>;
+    public abstract async update(id: number, candidate: T): Promise<number>;
     public abstract async delete(id: number): Promise<void>;
 }

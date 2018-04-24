@@ -4,6 +4,7 @@
         "module": "commonjs",
         "rootDir": "../",
         "outDir": "../../dist",
+        "removeComments": false,
         "moduleResolution": "node",
         "types": [
             "intern",

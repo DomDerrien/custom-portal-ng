@@ -1,9 +1,10 @@
 import { readOnly, getReadOnly } from './ReadOnly.js';
+import { ServerErrorException } from '../exceptions/ServerErrorException.js';
 
 export class BaseModel {
     // Factory method -- cannot be `abstract` because it's a public method
     public static getInstance(): BaseModel {
-        throw new Error('Must be overriden!');
+        throw new ServerErrorException('Must be overriden!');
     }
 
     // Common attributes

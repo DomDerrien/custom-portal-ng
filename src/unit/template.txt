@@ -1,0 +1,31 @@
+import intern from 'intern';
+
+const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
+const { assert } = intern.getPlugin('chai');
+import { stub, SinonStub } from 'sinon';
+
+class Test {
+    async test(): Promise<number> {
+        return Promise.resolve(1);
+    }
+    foo(): number { return 0; }
+}
+
+suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): void => {
+    let entity: Test;
+
+    beforeEach((): void => { entity = new Test(); });
+    afterEach((): void => { entity = null; });
+
+    suite('get()', (): void => {
+        test('get()', async (): Promise<void> => {
+            const fooStub: SinonStub = stub(entity, 'foo');
+            fooStub.withArgs().returns(1);
+
+            assert.strictEqual(await entity.test(), 1);
+
+            assert.isTrue(fooStub.calledOnce);
+            fooStub.restore();
+        });
+    });
+});

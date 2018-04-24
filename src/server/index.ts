@@ -9,6 +9,7 @@ import { RequestHandler } from 'express';
 import { OptionsJson, OptionsUrlencoded } from 'body-parser';
 import { ServeStaticOptions } from 'serve-static';
 import { Router } from 'express-serve-static-core';
+
 import { BaseResource } from './resource/BaseResource';
 
 interface ExpressBodyParser {
@@ -30,7 +31,7 @@ declare global {
     }
 }
 
-class Server {
+export class Server {
     private expressApp: express.Application;
     private expressBodyParser: ExpressBodyParser;
     private expressCookieParser: ExpressCookieParser;
@@ -52,21 +53,28 @@ class Server {
 
     private clientMainPage: string;
 
+    private getServerDirectory(): string {
+        return __dirname;
+    }
+
     private loadDependencies() {
-        this.clientMainPage = this.fsAccess.readFileSync(__dirname + '/../../src/client/index.html').toString('utf8');
+        this.clientMainPage = this.fsAccess.readFileSync(this.getServerDirectory() + '/../../src/client/index.html').toString('utf8');
+    }
+
+    private handleCORS(request: express.Request, response: express.Response, next: express.NextFunction): any {
+        response
+            .header('Vary', 'Origin')
+            .header('Access-Control-Allow-Origin', request.header('origin'))
+            .header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only, X-Sort-By')
+            .header('Access-Control-Allow-Credentials', 'true');
+        next();
     }
 
     private addMiddlewares() {
         this.expressApp.use(this.expressBodyParser.json());
         this.expressApp.use(this.expressBodyParser.urlencoded({ extended: false }));
         this.expressApp.use(this.expressCookieParser());
-        this.expressApp.use(function (req, res, next) {
-            res.header('Vary', 'Origin');
-            res.header('Access-Control-Allow-Origin', <string>req.headers.origin);
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Ids-Only, X-Sort-By');
-            res.header('Access-Control-Allow-Credentials', 'true');
-            next();
-        });
+        this.expressApp.use(this.handleCORS);
         const staticOptions: ServeStaticOptions = {
             etag: true,
             immutable: true,
@@ -75,15 +83,15 @@ class Server {
             maxAge: 15 * 60 * 1000,
             redirect: false
         };
-        // this.expressApp.use('/app', this.expressStatic(__dirname + '/../client/app', staticOptions));
-        this.expressApp.use('/fonts', this.expressStatic(__dirname + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 3000000 })));
-        this.expressApp.use('/images', this.expressStatic(__dirname + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 3000000 })));
-        this.expressApp.use('/model', this.expressStatic(__dirname + '/../client/model', staticOptions));
-        // this.expressApp.use('/widgets', this.expressStatic(__dirname + '/../client/widgets', staticOptions));
+        const dir: string = this.getServerDirectory();
+        // this.expressApp.use('/app', this.expressStatic(dir + '/../client/app', staticOptions));
+        this.expressApp.use('/fonts', this.expressStatic(dir + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 30000000 })));
+        this.expressApp.use('/images', this.expressStatic(dir + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 30000000 })));
+        this.expressApp.use('/model', this.expressStatic(dir + '/../client/model', staticOptions));
+        // this.expressApp.use('/widgets', this.expressStatic(dir + '/../client/widgets', staticOptions));
     }
 
-    private addServerRoutes() {
-        const resourceClasses: { [key: string]: typeof BaseResource } = <any>resources;
+    private addServerRoutes(resourceClasses: { [key: string]: typeof BaseResource } = <any>resources) {
         for (let resourceName in resourceClasses) {
             // Register the router provided by each concrete implementation of BaseResource
             this.expressApp.use(resourceClasses[resourceName].getInstance().getRouter());
@@ -126,39 +134,55 @@ class Server {
         return out.join('');
     }
 
-    private addClientRoutes() {
-        this.expressApp.use(this.expressRouter().get(/^\/(?:app|widgets)\//, (request: express.Request, response: express.Response): void => {
-            const url: string = request.url;
-            const filePath: string = './dist/client' + url;
-            let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
+    private processNodeImportsInApp(request: express.Request, response: express.Response): void {
+        const url: string = request.url;
+        const filePath: string = './dist/client' + url;
+        const extension: string = url.substring(url.lastIndexOf('.') + 1);
+        switch (extension) {
+            case 'js': response.set('Content-Type', 'application/javascript'); break;
+            case 'map': response.set('Content-Type', 'application/octet-stream'); break;
+            default: console.log('******* Unsupported extension', extension, 'for', url);
+        }
+        let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
+        if (extension === 'js') {
             content = this.replaceNodeImports(url, content, '@polymer'); // Just one shortcut to process in the application files
-            const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-            response.set({ 'Content-Type': 'application/javascript', 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
-        }));
-        this.expressApp.use(this.expressRouter().get('/node_modules/*', (request: express.Request, response: express.Response): void => {
-            const url: string = request.url;
-            const extension: string = url.substring(url.lastIndexOf('.') + 1);
-            switch (extension) {
-                case 'js': response.set('Content-Type', 'application/javascript'); break;
-                case 'map': response.set('Content-Type', 'application/octet-stream'); break;
-                default: console.log('******* Unsupported extension', extension, 'for', url);
+        }
+        const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+    }
+
+    private processNodeImportsInPolymer(request: express.Request, response: express.Response): void {
+        const url: string = request.url;
+        const extension: string = url.substring(url.lastIndexOf('.') + 1);
+        switch (extension) {
+            case 'js': response.set('Content-Type', 'application/javascript'); break;
+            case 'map': response.set('Content-Type', 'application/octet-stream'); break;
+            default: console.log('******* Unsupported extension', extension, 'for', url);
+        }
+        const filePath: string = '.' + url;
+        let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
+        const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
+        const needFiltering: boolean = nodeLikeModuleNames.reduce((accumulator: boolean, moduleName: string): boolean => accumulator || -1 < url.indexOf(moduleName), false);
+        if (needFiltering) {
+            for (let name of nodeLikeModuleNames) {
+                content = this.replaceNodeImports(url, content, name);
             }
-            const filePath: string = '.' + url;
-            let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
-            const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
-            const needFiltering: boolean = nodeLikeModuleNames.reduce((accumulator: boolean, moduleName: string): boolean => accumulator || -1 < url.indexOf(moduleName), false);
-            if (needFiltering) {
-                for (let name of nodeLikeModuleNames) {
-                    content = this.replaceNodeImports(url, content, name);
-                }
-            }
-            const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-            response.set({ 'Content-Type': 'application/javascript', 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
-        }));
-        this.expressApp.use(this.expressRouter().get('/*', (request: express.Request, response: express.Response): void => {
-            response.set('Content-Type', 'text/html');
-            response.send(this.clientMainPage);
-        }));
+        }
+        const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+    }
+
+    private handleAnyRemainingRequest(request: express.Request, response: express.Response): void {
+        response.set('Content-Type', 'text/html').send(this.clientMainPage);
+    }
+
+    private addClientRoutes() {
+        const expressRouter: Router = this.expressRouter();
+        const bindApp: (request: express.Request, response: express.Response) => void = this.processNodeImportsInApp.bind(this);
+        const bindPolymer: (request: express.Request, response: express.Response) => void = this.processNodeImportsInPolymer.bind(this);
+        this.expressApp.use(expressRouter.get(/^\/(?:app|widgets)\//, bindApp));
+        this.expressApp.use(expressRouter.get('/node_modules/*', bindPolymer));
+        this.expressApp.use(expressRouter.get('/*', this.handleAnyRemainingRequest));
     }
 
     public start(port: number) {
@@ -171,10 +195,7 @@ class Server {
     }
 }
 
-export const instanciateServer = function (): Server {
-    return new Server();
-}
-
+/* istanbul ignore if */
 if (process.argv[1].endsWith('/dist/server/index.js')) {
-    instanciateServer().start(Number(process.env.PORT || '8082'));
+    new Server().start(Number(process.env.PORT || '8082'));
 }

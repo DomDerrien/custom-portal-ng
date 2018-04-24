@@ -3,13 +3,14 @@ import { BaseDao as DAO, QueryOptions } from '../dao/BaseDao';
 import { User } from '../model/User';
 import { NotFoundException } from '../exceptions/NotFoundException';
 import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
+import { ServerErrorException } from '../exceptions/ServerErrorException';
 
 export class BaseService<T extends DAO<Model>> {
     protected dao: T;
 
     // Factory method -- cannot be `abstract` because it's a public method
     public static getInstance(): BaseService<DAO<Model>> {
-        throw new Error('Must be overriden!');
+        throw new ServerErrorException('Must be overriden!');
     }
 
     protected constructor(dao: T) {
@@ -26,18 +27,18 @@ export class BaseService<T extends DAO<Model>> {
         return this.dao.modelInstance;
     }
 
-    public async select(params: { [key: string]: string }, options: QueryOptions, loggedUser: User): Promise<Array<Model>> {
-        if (loggedUser === null) {
+    public async select(filters: { [key: string]: string }, options: QueryOptions, loggedUser: User): Promise<Array<Model>> {
+        if (!loggedUser) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.select()!`);
         }
         if (loggedUser !== User.Internal) {
-            params.ownerId = '' + loggedUser.id;
+            filters.ownerId = '' + loggedUser.id;
         }
-        return this.dao.query(params, options);
+        return this.dao.query(filters, options);
     }
 
     public async get(id: number, loggedUser: User): Promise<Model> {
-        if (loggedUser === null) {
+        if (!loggedUser) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.get()!`);
         }
         const entity: Model = await this.dao.get(id);
@@ -51,7 +52,7 @@ export class BaseService<T extends DAO<Model>> {
     }
 
     public async create(candidate: Model, loggedUser: User): Promise<number> {
-        if (loggedUser === null) {
+        if (!loggedUser) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.create()!`);
         }
         candidate.ownerId = loggedUser.id;
@@ -59,7 +60,7 @@ export class BaseService<T extends DAO<Model>> {
     }
 
     public async update(id: number, candidate: Model, loggedUser: User): Promise<number> {
-        if (loggedUser === null) {
+        if (!loggedUser) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.update()!`);
         }
         const entity: Model = await this.dao.get(id);
@@ -73,7 +74,7 @@ export class BaseService<T extends DAO<Model>> {
     }
 
     public async delete(id: number, loggedUser: User): Promise<void> {
-        if (loggedUser === null) {
+        if (!loggedUser) {
             throw new NotAuthorizedException(`Limited access to ${this.modelName}.delete()!`);
         }
         const entity: Model = await this.dao.get(id);

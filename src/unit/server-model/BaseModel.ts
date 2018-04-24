@@ -1,5 +1,6 @@
 import intern from 'intern';
 import { BaseModel } from '../../server/model/BaseModel';
+import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
@@ -33,7 +34,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
     });
 
     test('constructor w/o getInstance() implementation', (): void => {
-        assert.throw(TestModel.getInstance, Error, /Must be overriden\!/);
+        assert.throw(TestModel.getInstance, ServerErrorException, /Must be overriden\!/);
     });
 
     suite('merge', (): void => {

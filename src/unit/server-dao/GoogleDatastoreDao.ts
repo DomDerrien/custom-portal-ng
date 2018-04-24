@@ -3,7 +3,8 @@ import * as Datastore from '@google-cloud/datastore';
 import { GoogleDatastoreDao } from '../../server/dao/GoogleDatastoreDao';
 import { DatastoreKey, OneOrMany } from '@google-cloud/datastore/entity';
 import { CommitResult } from '@google-cloud/datastore/request';
-import { Query, QueryFilterOperator } from '@google-cloud/datastore/query';
+import { Query } from '@google-cloud/datastore/query';
+import { DatastoreTransaction, BeginTransactionResponse, RollbackResult } from '@google-cloud/datastore/transaction';
 
 import { BaseModel } from '../../server/model/BaseModel';
 import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
@@ -12,7 +13,6 @@ import { ClientErrorException } from '../../server/exceptions/ClientErrorExcepti
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
 import { stub, SinonStub } from 'sinon';
-import { DatastoreTransaction, BeginTransactionResponse, RollbackResult } from '@google-cloud/datastore/transaction';
 
 class TestModel extends BaseModel {
     public static getInstance(): BaseModel {
@@ -31,7 +31,7 @@ class TestDao extends GoogleDatastoreDao<TestModel> {
         super(new TestModel());
     }
 
-    // @ts-ignore: to be able to check the private variable
+    // @ts-ignore: access to private method
     public get datastore() { return this.store; }
 };
 
@@ -79,7 +79,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
     suite('prepareModelInstance', (): void => {
         test('w/o attributes', (): void => {
-            // @ts-ignore: to be able to check the private variable
+            // @ts-ignore: access to private method
             assert.deepEqual(dao.prepareModelInstance(), {});
         });
         test('w/ no key', (): void => {
@@ -90,7 +90,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
                 id: undefined,
                 anyAttr: 'anyVal'
             }
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.deepEqual(dao.prepareModelInstance(input), output);
         });
         test('w/ all attributes', (): void => {
@@ -102,7 +102,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
                 id: 12345,
                 anyAttr: 'anyVal'
             }
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.deepEqual(dao.prepareModelInstance(input), output);
         });
     });
@@ -147,7 +147,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const createQueryStub: SinonStub = stub(dao.datastore, 'createQuery');
             createQueryStub.withArgs('TestModel').returns(query);
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -158,7 +158,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
 
             try {
-                // @ts-ignore: to be able to check the private method
+                // @ts-ignore: access to private method
                 dao.prepareStandardQuery({ id: [] }, {});
                 throw new Error('Unexpected success!');
             }
@@ -176,7 +176,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const filterStub: SinonStub = stub(query, 'filter');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({ id: '12345' }, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -188,7 +188,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const filterStub: SinonStub = stub(query, 'filter');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({ name1: 'value1', name2: '=value2', name3: '=' }, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -203,7 +203,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const filterStub: SinonStub = stub(query, 'filter');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({ name1: 'true', name2: 'false' }, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -218,7 +218,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const filterStub: SinonStub = stub(query, 'filter');
             const orderStub: SinonStub = stub(query, 'order');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({ name: '>=1' }, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -234,7 +234,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const filterStub: SinonStub = stub(query, 'filter');
             const orderStub: SinonStub = stub(query, 'order');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({ name: '<=2' }, {}), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -251,7 +251,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const orderStub: SinonStub = stub(query, 'order');
 
             try {
-                // @ts-ignore: to be able to check the private method
+                // @ts-ignore: access to private method
                 dao.prepareStandardQuery({ name1: '>=1', name2: '<=2' }, {});
                 throw new Error('Unexpected success!');
             }
@@ -273,7 +273,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const orderStub: SinonStub = stub(query, 'order');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, { sortBy: ['+name1', '-name2'] }), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -288,7 +288,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const orderStub: SinonStub = stub(query, 'order');
 
             try {
-                // @ts-ignore: to be able to check the private method
+                // @ts-ignore: access to private method
                 dao.prepareStandardQuery({}, { sortBy: ['+', 'name2'] });
                 throw new Error('Unexpected success!');
             }
@@ -307,7 +307,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const selectStub: SinonStub = stub(query, 'select');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, { idOnly: true }), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -319,7 +319,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const offsetStub: SinonStub = stub(query, 'offset');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, { rangeStart: 123 }), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -331,7 +331,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             createQueryStub.withArgs('TestModel').returns(query);
             const limitStub: SinonStub = stub(query, 'limit');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, { rangeEnd: 234 }), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -344,7 +344,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const offsetStub: SinonStub = stub(query, 'offset');
             const limitStub: SinonStub = stub(query, 'limit');
 
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             assert.strictEqual(dao.prepareStandardQuery({}, { rangeStart: 123, rangeEnd: 234 }), query);
 
             assert.isTrue(createQueryStub.calledOnceWithExactly('TestModel'));
@@ -356,12 +356,12 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
     suite('query', (): void => {
         test('empty array', async (): Promise<void> => {
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareStandardQueryStub: SinonStub = stub(dao, 'prepareStandardQuery');
             prepareStandardQueryStub.withArgs({}, {}).returns(query);
             const runQueryStub: SinonStub = stub(dao.datastore, 'runQuery');
             runQueryStub.withArgs(query).returns(Promise.resolve([[], { moreResults: Datastore.MORE_RESULTS_AFTER_CURSOR }]));
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
 
             const results: Array<TestModel> = await dao.query({});
@@ -374,13 +374,13 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             // No need to restore stubs as the DAO instance is recreated before each test
         });
         test('array w/ one results', async (): Promise<void> => {
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareStandardQueryStub: SinonStub = stub(dao, 'prepareStandardQuery');
             prepareStandardQueryStub.withArgs({}, {}).returns(query);
             const resultPayload: Array<object> = [{ name: '1' }];
             const runQueryStub: SinonStub = stub(dao.datastore, 'runQuery');
             runQueryStub.withArgs(query).returns(Promise.resolve([resultPayload, { moreResults: Datastore.NO_MORE_RESULTS }]));
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             const selection: Array<TestModel> = [Object.assign(new TestModel(), resultPayload[0])];
             prepareModelInstanceStub.withArgs(resultPayload[0]).returns(selection[0]);
@@ -395,13 +395,13 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             // No need to restore stubs as the DAO instance is recreated before each test
         });
         test('array w/ two results & rangeStart = 10', async (): Promise<void> => {
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareStandardQueryStub: SinonStub = stub(dao, 'prepareStandardQuery');
             prepareStandardQueryStub.withArgs({}, { rangeStart: 10 }).returns(query);
             const resultPayload: Array<object> = [{ name: '1' }, { name: '2' }];
             const runQueryStub: SinonStub = stub(dao.datastore, 'runQuery');
             runQueryStub.withArgs(query).returns(Promise.resolve([resultPayload, { moreResults: Datastore.NO_MORE_RESULTS }]));
-            // @ts-ignore: to be able to check the private method
+            // @ts-ignore: access to private method
             const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             const selection: Array<TestModel> = [Object.assign(new TestModel(), resultPayload[0]), Object.assign(new TestModel(), resultPayload[1])];
             prepareModelInstanceStub.withArgs(resultPayload[0]).returns(selection[0]);
@@ -591,27 +591,27 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const entity = Object.assign(new TestModel(), { id: 12345, anyAttr: 'oldVal', updated: 999999 });
             const candidate = Object.assign(new TestModel(), { id: 12345, anyAttr: 'newVal', updated: 999999 });
             const key: DatastoreKey = <DatastoreKey>{ kind: 'TestModel', id: '12345' };
-            const keyStub = stub(dao.datastore, 'key');
+            const keyStub: SinonStub = stub(dao.datastore, 'key');
             keyStub.withArgs(['TestModel', 12345]).returns(key);
-            const transactionStub = stub(dao.datastore, 'transaction');
+            const transactionStub: SinonStub = stub(dao.datastore, 'transaction');
             transactionStub.withArgs().returns(transaction);
-            const runStub = stub(transaction, 'run');
+            const runStub: SinonStub = stub(transaction, 'run');
             runStub.withArgs().returns(Promise.resolve([transaction, undefined]));
-            const getStub = stub(transaction, 'get');
+            const getStub: SinonStub = stub(transaction, 'get');
             getStub.withArgs(key).returns(Promise.resolve([entity]));
             // @ts-ignore: access to a private method
-            const prepareModelInstanceStub = stub(dao, 'prepareModelInstance');
+            const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             prepareModelInstanceStub.withArgs(entity).returns(entity);
-            const saveStub = stub(transaction, 'save');
+            const saveStub: SinonStub = stub(transaction, 'save');
             const resultPayload: CommitResult = <CommitResult>[{
                 mutationResults: [{
                     conflictDetected: false
                 }],
                 indexUpdates: 1
             }];
-            const commitStub = stub(transaction, 'commit');
+            const commitStub: SinonStub = stub(transaction, 'commit');
             commitStub.withArgs().returns(Promise.resolve(resultPayload));
-            const rollbackStub = stub(transaction, 'rollback');
+            const rollbackStub: SinonStub = stub(transaction, 'rollback');
 
             assert.strictEqual(await dao.update(12345, candidate), 12345);
 
@@ -629,20 +629,20 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const entity = Object.assign(new TestModel(), { id: 12345, anyAttr: 'oldVal', updated: 999999 });
             const candidate = Object.assign(new TestModel(), { id: 12345, anyAttr: 'newVal', updated: 888888 });
             const key: DatastoreKey = <DatastoreKey>{ kind: 'TestModel', id: '12345' };
-            const keyStub = stub(dao.datastore, 'key');
+            const keyStub: SinonStub = stub(dao.datastore, 'key');
             keyStub.withArgs(['TestModel', 12345]).returns(key);
-            const transactionStub = stub(dao.datastore, 'transaction');
+            const transactionStub: SinonStub = stub(dao.datastore, 'transaction');
             transactionStub.withArgs().returns(transaction);
-            const runStub = stub(transaction, 'run');
+            const runStub: SinonStub = stub(transaction, 'run');
             runStub.withArgs().returns(Promise.resolve([transaction, undefined]));
-            const getStub = stub(transaction, 'get');
+            const getStub: SinonStub = stub(transaction, 'get');
             getStub.withArgs(key).returns(Promise.resolve([entity]));
             // @ts-ignore: access to a private method
-            const prepareModelInstanceStub = stub(dao, 'prepareModelInstance');
+            const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             prepareModelInstanceStub.withArgs(entity).returns(entity);
-            const saveStub = stub(transaction, 'save');
-            const commitStub = stub(transaction, 'commit');
-            const rollbackStub = stub(transaction, 'rollback');
+            const saveStub: SinonStub = stub(transaction, 'save');
+            const commitStub: SinonStub = stub(transaction, 'commit');
+            const rollbackStub: SinonStub = stub(transaction, 'rollback');
 
             try {
                 await dao.update(12345, candidate);
@@ -668,20 +668,20 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const entity = Object.assign(new TestModel(), { id: 12345, anyAttr: 'sameVal', updated: 999999 });
             const candidate = Object.assign(new TestModel(), { id: 12345, anyAttr: 'sameVal', updated: 999999 });
             const key: DatastoreKey = <DatastoreKey>{ kind: 'TestModel', id: '12345' };
-            const keyStub = stub(dao.datastore, 'key');
+            const keyStub: SinonStub = stub(dao.datastore, 'key');
             keyStub.withArgs(['TestModel', 12345]).returns(key);
-            const transactionStub = stub(dao.datastore, 'transaction');
+            const transactionStub: SinonStub = stub(dao.datastore, 'transaction');
             transactionStub.withArgs().returns(transaction);
-            const runStub = stub(transaction, 'run');
+            const runStub: SinonStub = stub(transaction, 'run');
             runStub.withArgs().returns(Promise.resolve([transaction, undefined]));
-            const getStub = stub(transaction, 'get');
+            const getStub: SinonStub = stub(transaction, 'get');
             getStub.withArgs(key).returns(Promise.resolve([entity]));
             // @ts-ignore: access to a private method
-            const prepareModelInstanceStub = stub(dao, 'prepareModelInstance');
+            const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             prepareModelInstanceStub.withArgs(entity).returns(entity);
-            const saveStub = stub(transaction, 'save');
-            const commitStub = stub(transaction, 'commit');
-            const rollbackStub = stub(transaction, 'rollback');
+            const saveStub: SinonStub = stub(transaction, 'save');
+            const commitStub: SinonStub = stub(transaction, 'commit');
+            const rollbackStub: SinonStub = stub(transaction, 'rollback');
 
             try {
                 await dao.update(12345, candidate);
@@ -707,27 +707,27 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const entity = Object.assign(new TestModel(), { id: 12345, anyAttr: 'oldVal', updated: 999999 });
             const candidate = Object.assign(new TestModel(), { id: 12345, anyAttr: 'newVal', updated: 999999 });
             const key: DatastoreKey = <DatastoreKey>{ kind: 'TestModel', id: '12345' };
-            const keyStub = stub(dao.datastore, 'key');
+            const keyStub: SinonStub = stub(dao.datastore, 'key');
             keyStub.withArgs(['TestModel', 12345]).returns(key);
-            const transactionStub = stub(dao.datastore, 'transaction');
+            const transactionStub: SinonStub = stub(dao.datastore, 'transaction');
             transactionStub.withArgs().returns(transaction);
-            const runStub = stub(transaction, 'run');
+            const runStub: SinonStub = stub(transaction, 'run');
             runStub.withArgs().returns(Promise.resolve([transaction, undefined]));
-            const getStub = stub(transaction, 'get');
+            const getStub: SinonStub = stub(transaction, 'get');
             getStub.withArgs(key).returns(Promise.resolve([entity]));
             // @ts-ignore: access to a private method
-            const prepareModelInstanceStub = stub(dao, 'prepareModelInstance');
+            const prepareModelInstanceStub: SinonStub = stub(dao, 'prepareModelInstance');
             prepareModelInstanceStub.withArgs(entity).returns(entity);
-            const saveStub = stub(transaction, 'save');
+            const saveStub: SinonStub = stub(transaction, 'save');
             const resultPayload: CommitResult = <CommitResult>[{
                 mutationResults: [{
                     conflictDetected: true
                 }],
                 indexUpdates: 1
             }];
-            const commitStub = stub(transaction, 'commit');
+            const commitStub: SinonStub = stub(transaction, 'commit');
             commitStub.withArgs().returns(Promise.resolve(resultPayload));
-            const rollbackStub = stub(transaction, 'rollback');
+            const rollbackStub: SinonStub = stub(transaction, 'rollback');
 
             try {
                 await dao.update(12345, candidate);

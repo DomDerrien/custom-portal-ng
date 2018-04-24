@@ -21,9 +21,15 @@ const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     isAdmin: 'X-AppEngine-User-Is-Admin',
 }
 
+// AuthResource does not extends BaseResource because it does not define operations for a specific resource
+// It does however process one entry point to help authenticating a user. It relies on Google OAuth service.
+// For this entry point, it mimics a BaseResource-like class with the methods `getIntance()` and `getRoute()`.
+
 export class AuthResource {
     private static instance: AuthResource;
     private userService: UserService;
+    private oauth2Client: OAuth2Client;
+    private readonly CLIENT_ID: string = '273389031064-d7cu4dnn3a48kerusgr7k1tnf3i6jj1v.apps.googleusercontent.com';
 
     // Factory method
     public static getInstance(): AuthResource {
@@ -35,28 +41,30 @@ export class AuthResource {
 
     private constructor() {
         this.userService = UserService.getInstance();
+        this.oauth2Client = new OAuth2Client(this.CLIENT_ID, '', '');
     }
 
     public getRouter(): express.Router {
         let basePath: string = '/api/v1/Auth';
 
         let router: express.Router = express.Router();
-        router.post(basePath + '/', this.idTokenValidator);
+        router.post(basePath + '/', this.getIdTokenValidator());
 
         console.log('Ready to serve requests sent to:', basePath);
         return router;
     }
 
     private async setupResponseParams(response: express.Response, userId: number, sessionToken: string, newUser: boolean = false): Promise<void> {
+        const status: number = newUser ? 201 : 200; // HTTP status: CREATED or OK
         response.
             cookie('UserId', userId, { secure: false, httpOnly: true }). // TODO: identify the local dev server for `secure:false`, default being `secure:true`
             cookie('Token', sessionToken, { secure: false, httpOnly: true }).
             contentType('text/plain').
             location('/api/v1/User/' + userId).
-            sendStatus(newUser ? 201 : 200); // HTTP status: CREATED or OK
+            sendStatus(status);
     }
 
-    private get idTokenValidator(): (request: express.Request, response: express.Response) => void {
+    private getIdTokenValidator(): (request: express.Request, response: express.Response) => Promise<void> {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             try {
                 const idToken: string = request.body.idToken;
@@ -67,8 +75,8 @@ export class AuthResource {
                 const users: Array<User> = <Array<User>>await this.userService.select({ email: email }, { idOnly: false }, User.Internal);
                 if (0 < users.length) {
                     const user: User = users[0];
-                    await this.userService.update(user.id, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
-                    return this.setupResponseParams(response, user.id, sessionToken);
+                    const userId: number = await this.userService.update(user.id, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+                    return this.setupResponseParams(response, userId, sessionToken);
                 }
 
                 const user: User = Object.assign(new User(), {
@@ -78,11 +86,11 @@ export class AuthResource {
                     sessionToken: sessionToken,
                     verifiedEmail: decodedToken.email_verified
                 });
-                if (request.headers[GAE_STANDARD_HEADER_NAMES.CityLatLong]) {
-                    user.latLong = <string>request.headers[GAE_STANDARD_HEADER_NAMES.CityLatLong];
-                    user.city = <string>request.headers[GAE_STANDARD_HEADER_NAMES.City];
-                    user.region = <string>request.headers[GAE_STANDARD_HEADER_NAMES.Region];
-                    user.country = <string>request.headers[GAE_STANDARD_HEADER_NAMES.Country];
+                if (request.headers[GAE_STANDARD_HEADER_NAMES.cityLatLong]) {
+                    user.latLong = <string>request.headers[GAE_STANDARD_HEADER_NAMES.cityLatLong];
+                    user.city = <string>request.headers[GAE_STANDARD_HEADER_NAMES.city];
+                    user.region = <string>request.headers[GAE_STANDARD_HEADER_NAMES.region];
+                    user.country = <string>request.headers[GAE_STANDARD_HEADER_NAMES.country];
                 }
                 const userId = await this.userService.create(user, User.Internal);
                 this.setupResponseParams(response, userId, sessionToken, true);
@@ -104,29 +112,25 @@ export class AuthResource {
         return Promise.resolve(null);
     }
 
-    private readonly CLIENT_ID: string = '273389031064-d7cu4dnn3a48kerusgr7k1tnf3i6jj1v.apps.googleusercontent.com';
 
     private async verifyIdToken(idToken: string): Promise<TokenPayload> {
         return new Promise(((resolve: (value: TokenPayload) => void, reject: (reason: any) => void) => {
-            const client = new OAuth2Client(this.CLIENT_ID, '', '');
-            client.verifyIdToken({ idToken: idToken, audience: this.CLIENT_ID }).then(
-                (loginTicket: LoginTicket): void => {
+            this.oauth2Client.verifyIdToken({ idToken: idToken, audience: this.CLIENT_ID })
+                .then((loginTicket: LoginTicket): void => {
                     const decodedToken: TokenPayload = loginTicket.getPayload();
                     if (decodedToken.aud !== this.CLIENT_ID) {
                         reject('`aud` does not match the CLIENT_ID!');
                         return;
                     }
-                    if (new Date().getTime() < decodedToken.exp) {
+                    if (decodedToken.exp < new Date().getTime()) {
                         reject('`exp` is set in the past! ' + new Date(decodedToken.exp));
                         return;
                     }
                     resolve(decodedToken);
-                }
-            ).catch(
-                (reason: any): void => {
+                })
+                .catch((reason: any): void => {
                     reject(reason);
-                }
-            );
+                });
         }));
     }
 }
