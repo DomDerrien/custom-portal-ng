@@ -1,7 +1,10 @@
 {
     "bail": false,
     "debug": false,
-    "grep": ".*",
+    "benchmark": false,
+    "environments": [
+        "node"
+    ],
     "suites": "./dist/unit/**/*.js",
     "coverage": "./dist/server/**/*.js",
     "reporters": [

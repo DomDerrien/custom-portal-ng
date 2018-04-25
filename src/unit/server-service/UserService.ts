@@ -3,7 +3,7 @@ import intern from 'intern';
 import { UserService } from '../../server/service/UserService';
 import { UserDao } from '../../server/dao/UserDao';
 import { User } from '../../server/model/User';
-import { NotAuthorizedException } from '../../server/exceptions/NotAuthorizedException';
+import { NotAuthorizedException } from '../../server/exception/NotAuthorizedException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

@@ -1,5 +1,5 @@
 import { readOnly, getReadOnly } from './ReadOnly.js';
-import { ServerErrorException } from '../exceptions/ServerErrorException.js';
+import { ServerErrorException } from '../exception/ServerErrorException.js';
 
 export class BaseModel {
     // Factory method -- cannot be `abstract` because it's a public method

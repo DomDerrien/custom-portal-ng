@@ -185,9 +185,11 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         getServerDirectoryStub.withArgs().returns('here');
         // @ts-ignore: access to private attribute
         const staticStub: SinonStub = stub(server, 'expressStatic');
+        staticStub.withArgs('here/../../src/client/exception', { etag: true, immutable: true, index: false, lastModified: true, maxAge: 300000, redirect: false }).returns('exception');
         staticStub.withArgs('here/../../src/client/fonts', { etag: true, immutable: true, index: false, lastModified: true, maxAge: 30000000, redirect: false }).returns('fonts');
         staticStub.withArgs('here/../../src/client/images', { etag: true, immutable: true, index: false, lastModified: true, maxAge: 30000000, redirect: false }).returns('images');
         staticStub.withArgs('here/../../src/client/model', { etag: true, immutable: true, index: false, lastModified: true, maxAge: 300000, redirect: false }).returns('model');
+        useStub.withArgs('/exception', 'exception').returns(expressApp);
         useStub.withArgs('/fonts', 'fonts').returns(expressApp);
         useStub.withArgs('/images', 'images').returns(expressApp);
         useStub.withArgs('/model', 'model').returns(expressApp);
@@ -199,8 +201,8 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         assert.isTrue(urlencodedStub.calledOnce);
         assert.isTrue(expressCookieParserStub.calledOnce);
         assert.isTrue(getServerDirectoryStub.calledOnce);
-        assert.isTrue(staticStub.calledThrice);
-        assert.strictEqual(useStub.callCount, 4 + 3);
+        assert.strictEqual(staticStub.callCount, 4);
+        assert.strictEqual(useStub.callCount, 4 + 4);
         jsonStub.restore();
         urlencodedStub.restore();
         expressCookieParserStub.restore();
@@ -539,6 +541,10 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         const bind2Stub: SinonStub = stub(server.processNodeImportsInPolymer, 'bind');
         const f2: (request: express.Request, response: express.Response) => void = () => { console.log('f2'); };
         bind2Stub.withArgs(server).returns(f2);
+        // @ts-ignore: access to private method
+        const bind3Stub: SinonStub = stub(server.handleAnyRemainingRequest, 'bind');
+        const f3: (request: express.Request, response: express.Response) => void = () => { console.log('f3'); };
+        bind3Stub.withArgs(server).returns(f3);
 
         const getStub: SinonStub = stub();
         // @ts-ignore: access to private attribute
@@ -556,8 +562,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         assert.isTrue(getStub.calledThrice);
         assert.isTrue(getStub.calledWithExactly(/^\/(?:app|widgets)\//, f1));
         assert.isTrue(getStub.calledWithExactly('/node_modules/*', f2));
-        // @ts-ignore: access to private method
-        assert.isTrue(getStub.calledWithExactly('/*', server.handleAnyRemainingRequest));
+        assert.isTrue(getStub.calledWithExactly('/*', f3));
         assert.isTrue(useStub.calledThrice);
         bind1Stub.restore();
         bind2Stub.restore();

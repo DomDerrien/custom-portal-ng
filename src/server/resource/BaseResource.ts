@@ -1,12 +1,12 @@
 import * as express from 'express';
 
-import { BaseException } from '../exceptions/BaseException';
+import { BaseException } from '../exception/BaseException';
 import { BaseModel as Model } from '../model/BaseModel';
 import { User } from '../model/User';
 import { BaseDao as DAO, QueryOptions } from '../dao/BaseDao';
 import { BaseService as Service } from '../service/BaseService';
 import { AuthResource } from './AuthResource';
-import { ServerErrorException } from '../exceptions/ServerErrorException';
+import { ServerErrorException } from '../exception/ServerErrorException';
 
 export class BaseResource<T extends Service<DAO<Model>>> {
 

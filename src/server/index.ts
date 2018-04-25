@@ -9,7 +9,6 @@ import { RequestHandler } from 'express';
 import { OptionsJson, OptionsUrlencoded } from 'body-parser';
 import { ServeStaticOptions } from 'serve-static';
 import { Router } from 'express-serve-static-core';
-
 import { BaseResource } from './resource/BaseResource';
 
 interface ExpressBodyParser {
@@ -85,6 +84,7 @@ export class Server {
         };
         const dir: string = this.getServerDirectory();
         // this.expressApp.use('/app', this.expressStatic(dir + '/../client/app', staticOptions));
+        this.expressApp.use('/exception', this.expressStatic(dir + '/../client/exception', staticOptions));
         this.expressApp.use('/fonts', this.expressStatic(dir + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 30000000 })));
         this.expressApp.use('/images', this.expressStatic(dir + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 30000000 })));
         this.expressApp.use('/model', this.expressStatic(dir + '/../client/model', staticOptions));
@@ -182,7 +182,7 @@ export class Server {
         const bindPolymer: (request: express.Request, response: express.Response) => void = this.processNodeImportsInPolymer.bind(this);
         this.expressApp.use(expressRouter.get(/^\/(?:app|widgets)\//, bindApp));
         this.expressApp.use(expressRouter.get('/node_modules/*', bindPolymer));
-        this.expressApp.use(expressRouter.get('/*', this.handleAnyRemainingRequest));
+        this.expressApp.use(expressRouter.get('/*', this.handleAnyRemainingRequest.bind(this)));
     }
 
     public start(port: number) {

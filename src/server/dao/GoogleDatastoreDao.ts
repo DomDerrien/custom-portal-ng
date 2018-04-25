@@ -6,8 +6,8 @@ import { DatastoreTransaction, TransactionResult } from '@google-cloud/datastore
 
 import { BaseDao, QueryOptions } from './BaseDao';
 import { BaseModel as Model } from '../model/BaseModel';
-import { ClientErrorException } from '../exceptions/ClientErrorException';
-import { ServerErrorException } from '../exceptions/ServerErrorException';
+import { ClientErrorException } from '../exception/ClientErrorException';
+import { ServerErrorException } from '../exception/ServerErrorException';
 
 export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
     private store: Datastore;

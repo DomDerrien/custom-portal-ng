@@ -1,7 +1,7 @@
 import intern from 'intern';
 import { BaseDao } from '../../server/dao/BaseDao';
 import { BaseModel } from '../../server/model/BaseModel';
-import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
 
 const { suite, test } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

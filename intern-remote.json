@@ -1,0 +1,22 @@
+{
+    "bail": false,
+    "debug": false,
+    "benchmark": false,
+    "capabilities": {},
+    "environments": [
+        "node",
+        {
+            "browserName": "chrome"
+        }
+    ],
+    "functionalSuites": [
+        "./dist/functional/**/*.js"
+    ],
+    "tunnel": "null",
+    "tunnelOptions": {
+        "drivers": [
+            "chrome"
+        ]
+    },
+    "leaveRemoteOpen": false
+}

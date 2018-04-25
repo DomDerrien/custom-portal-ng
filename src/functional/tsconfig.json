@@ -1,0 +1,26 @@
+{
+    "extends": "../tsconfig",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "rootDir": "../",
+        "outDir": "../../dist",
+        "removeComments": false,
+        "moduleResolution": "node",
+        "types": [
+            "intern",
+            "node"
+        ],
+        "lib": [
+            "dom",
+            "es5",
+            "es2015.promise",
+            "es2015.symbol",
+            "es2015.symbol.wellknown"
+        ]
+    },
+    "include": [
+        "../../src/functional/**/*.ts",
+        "../typings.d.ts"
+    ]
+}

@@ -1,6 +1,6 @@
 import intern from 'intern';
 import { BaseModel } from '../../server/model/BaseModel';
-import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

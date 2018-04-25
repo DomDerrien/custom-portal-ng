@@ -1,5 +1,5 @@
 import { BaseModel as Model } from '../model/BaseModel';
-import { ServerErrorException } from '../exceptions/ServerErrorException';
+import { ServerErrorException } from '../exception/ServerErrorException';
 
 interface TModelConstructor<T extends Model> {
     new(): T;

@@ -1,5 +1,5 @@
 import intern from 'intern';
-import { NotAuthorizedException } from '../../server/exceptions/NotAuthorizedException';
+import { NotAuthorizedException } from '../../server/exception/NotAuthorizedException';
 
 const { suite, test } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

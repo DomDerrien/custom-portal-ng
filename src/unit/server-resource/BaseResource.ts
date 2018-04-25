@@ -6,14 +6,14 @@ import { BaseDao } from '../../server/dao/BaseDao';
 import { BaseService } from '../../server/service/BaseService';
 import { BaseResource } from '../../server/resource/BaseResource';
 import { AuthResource } from '../../server/resource/AuthResource';
-import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
+import { NotAuthorizedException } from '../../server/exception/NotAuthorizedException';
+import { ClientErrorException } from '../../server/exception/ClientErrorException';
 import { User } from '../../server/model/User';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
 import { stub, SinonStub } from 'sinon';
-import { NotAuthorizedException } from '../../server/exceptions/NotAuthorizedException';
-import { ClientErrorException } from '../../server/exceptions/ClientErrorException';
 
 class TestModel extends BaseModel {
     static getInstance(): TestModel { return new TestModel(); }

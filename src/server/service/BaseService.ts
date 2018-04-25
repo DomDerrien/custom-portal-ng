@@ -1,9 +1,9 @@
 import { BaseModel as Model } from '../model/BaseModel';
 import { BaseDao as DAO, QueryOptions } from '../dao/BaseDao';
 import { User } from '../model/User';
-import { NotFoundException } from '../exceptions/NotFoundException';
-import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
-import { ServerErrorException } from '../exceptions/ServerErrorException';
+import { NotFoundException } from '../exception/NotFoundException';
+import { NotAuthorizedException } from '../exception/NotAuthorizedException';
+import { ServerErrorException } from '../exception/ServerErrorException';
 
 export class BaseService<T extends DAO<Model>> {
     protected dao: T;

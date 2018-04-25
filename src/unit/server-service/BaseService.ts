@@ -3,14 +3,14 @@ import intern from 'intern';
 import { BaseModel } from '../../server/model/BaseModel';
 import { BaseDao, QueryOptions } from '../../server/dao/BaseDao';
 import { BaseService } from '../../server/service/BaseService';
-import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
-import { NotAuthorizedException } from '../../server/exceptions/NotAuthorizedException';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
+import { NotAuthorizedException } from '../../server/exception/NotAuthorizedException';
+import { NotFoundException } from '../../server/exception/NotFoundException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
 import { stub, SinonStub } from 'sinon';
 import { User } from '../../server/model/User';
-import { NotFoundException } from '../../server/exceptions/NotFoundException';
 
 class TestModel extends BaseModel {
     static getInstance(): TestModel { return new TestModel(); }

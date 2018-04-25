@@ -1,5 +1,5 @@
 import intern from 'intern';
-import { NotFoundException } from '../../server/exceptions/NotFoundException';
+import { NotFoundException } from '../../server/exception/NotFoundException';
 
 const { suite, test } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

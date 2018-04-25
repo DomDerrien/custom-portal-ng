@@ -6,7 +6,7 @@ import { CategoryService } from '../../server/service/CategoryService';
 import { Link } from '../../server/model/Link';
 import { Category } from '../../server/model/Category';
 import { User } from '../../server/model/User';
-import { ClientErrorException } from '../../server/exceptions/ClientErrorException';
+import { ClientErrorException } from '../../server/exception/ClientErrorException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

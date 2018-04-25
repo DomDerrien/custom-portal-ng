@@ -1,5 +1,5 @@
 import intern from 'intern';
-import { ClientErrorException } from '../../server/exceptions/ClientErrorException';
+import { ClientErrorException } from '../../server/exception/ClientErrorException';
 
 const { suite, test } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');

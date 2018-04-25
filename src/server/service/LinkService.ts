@@ -4,7 +4,7 @@ import { QueryOptions } from '../dao/BaseDao';
 import { LinkDao as DAO } from '../dao/LinkDao';
 import { BaseService } from './BaseService';
 import { CategoryService as ParentService } from './CategoryService';
-import { ClientErrorException } from '../exceptions/ClientErrorException';
+import { ClientErrorException } from '../exception/ClientErrorException';
 
 export class LinkService extends BaseService<DAO> {
     private static instance: LinkService;

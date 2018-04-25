@@ -40,21 +40,26 @@
         "@types/node": "latest",
         "@types/node-fetch": "latest",
         "@types/sinon": "latest",
+        "@types/systemjs": "latest",
+        "chromedriver": "latest",
         "concurrently": "latest",
         "intern": "latest",
+        "leadfoot": "latest",
         "nodemon": "latest",
         "sinon": "latest",
         "source-map-support": "latest",
         "tslint": "latest",
-        "typescript": "latest"
+        "typescript": "latest",
+        "systemjs": "latest"
     },
     "scripts": {
         "clean": "rm -rf node_modules coverage dist package-lock.json",
-        "init": "popd ./src/client/; ln -s ../server/model/ .; popd",
-        "watch": "concurrently --names 'server,client, unit ' -c 'bgBlue,black.bgGreen,black.bgYellow' 'tsc -p ./src/server --watch' 'tsc -p ./src/client --watch' 'tsc -p ./src/unit --watch'",
+        "init": "pushd ./src/client/; ln -s ../server/model/ .; ln -s ../server/exception/ .; popd",
+        "watch": "concurrently --names 'server,client, unit ,fnctnl' -c 'white.bgBlue,black.bgGreen,black.bgYellow,black.bgMagenta' 'tsc -p ./src/server --watch' 'tsc -p ./src/client --watch' 'tsc -p ./src/unit --watch' 'tsc -p ./src/functional --watch'",
         "dev": "nodemon -r source-map-support/register ./dist/server/index.js --watch ./dist/server",
         "start": "node ./dist/server/index.js",
-        "test": "intern",
+        "webdriver": "chromedriver --port=4444 --url-base=wd/hub",
+        "test": "intern config=intern-local.json; intern config=intern-remote.json",
         "deploy": "gcloud app deploy"
     }
 }

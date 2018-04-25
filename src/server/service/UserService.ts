@@ -1,4 +1,4 @@
-import { NotAuthorizedException } from '../exceptions/NotAuthorizedException';
+import { NotAuthorizedException } from '../exception/NotAuthorizedException';
 import { UserDao as DAO } from '../dao/UserDao';
 import { BaseService } from './BaseService';
 import { User } from '../model/User';

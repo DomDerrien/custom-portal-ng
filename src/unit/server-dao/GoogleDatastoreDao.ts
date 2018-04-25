@@ -7,8 +7,8 @@ import { Query } from '@google-cloud/datastore/query';
 import { DatastoreTransaction, BeginTransactionResponse, RollbackResult } from '@google-cloud/datastore/transaction';
 
 import { BaseModel } from '../../server/model/BaseModel';
-import { ServerErrorException } from '../../server/exceptions/ServerErrorException';
-import { ClientErrorException } from '../../server/exceptions/ClientErrorException';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
+import { ClientErrorException } from '../../server/exception/ClientErrorException';
 
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
