@@ -42,7 +42,7 @@ export let tmpl: HTMLTemplateElement = html`
         <app-header fixed>
             <app-toolbar class="toolbar">
                 <div main-title>Custom Portal v2</div>
-                <paper-icon-button id="addEntity" src="/images/category-add-white.svg" title="Add a {{entityName}}"></paper-icon-button>
+                <paper-icon-button id="addCategory" src="/images/category-add-white.svg" title="Add a {{entityName}}"></paper-icon-button>
                 <paper-icon-button id="signOut" src="/images/logout-white.svg" title="Sign out"></paper-icon-button>
                 <div id="avatar"></div>
             </app-toolbar>

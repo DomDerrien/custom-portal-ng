@@ -4,6 +4,7 @@ import { LoginTicket, TokenPayload } from 'google-auth-library/build/src/auth/lo
 
 import { UserService } from '../service/UserService';
 import { User } from '../model/User';
+import { ServerErrorException } from '../exception/ServerErrorException';
 
 const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     cityLatLong: 'X-AppEngine-CityLatLong',
@@ -29,6 +30,7 @@ export class AuthResource {
     private static instance: AuthResource;
     private userService: UserService;
     private oauth2Client: OAuth2Client;
+    public static readonly TEST_ACCOUNT_ID: number = 5764878782431232; // Test account identifier
     private readonly CLIENT_ID: string = '273389031064-d7cu4dnn3a48kerusgr7k1tnf3i6jj1v.apps.googleusercontent.com';
 
     // Factory method
@@ -64,12 +66,34 @@ export class AuthResource {
             sendStatus(status);
     }
 
+    private generateSessionToken(userId: number, googleSessionToken: string): string {
+        if (userId) {
+            return '--' + (AuthResource.TEST_ACCOUNT_ID + new Date().getTime() + Math.round(Math.random() * 100000));
+        }
+        if (googleSessionToken) {
+            return googleSessionToken.substring(Math.max(0, googleSessionToken.length - 32));
+        }
+        throw new ServerErrorException('Error while generating a session token');
+    }
+
     private getIdTokenValidator(): (request: express.Request, response: express.Response) => Promise<void> {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             try {
                 const idToken: string = request.body.idToken;
+                const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX; // Set by the test script dynamically
+
+                if (testAccountSuffix && idToken === ('#automaticTests-' + testAccountSuffix)) {
+                    console.log('Authentication w/ test account:', idToken);
+
+                    const user: User = await this.userService.get(AuthResource.TEST_ACCOUNT_ID, User.Internal);
+                    const sessionToken: string = this.generateSessionToken(AuthResource.TEST_ACCOUNT_ID, null);
+                    await this.userService.update(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+
+                    return this.setupResponseParams(response, AuthResource.TEST_ACCOUNT_ID, sessionToken, true);
+                }
+
                 const decodedToken: TokenPayload = await this.verifyIdToken(idToken);
-                const sessionToken: string = idToken.substring(Math.max(0, idToken.length - 32));
+                const sessionToken: string = this.generateSessionToken(null, idToken);
 
                 const email: string = decodedToken.email;
                 const users: Array<User> = <Array<User>>await this.userService.select({ email: email }, { idOnly: false }, User.Internal);
@@ -122,8 +146,8 @@ export class AuthResource {
                         reject('`aud` does not match the CLIENT_ID!');
                         return;
                     }
-                    if (decodedToken.exp < new Date().getTime()) {
-                        reject('`exp` is set in the past! ' + new Date(decodedToken.exp));
+                    if (decodedToken.exp * 1000 < new Date().getTime()) {
+                        reject('`exp` is set in the past! ' + new Date(decodedToken.exp * 1000) + ' vs ' + new Date());
                         return;
                     }
                     resolve(decodedToken);

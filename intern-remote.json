@@ -2,11 +2,24 @@
     "bail": false,
     "debug": false,
     "benchmark": false,
-    "capabilities": {},
+    "capabilities": {
+        "browserName": "chrome",
+        "goog:chromeOptions": {
+            "args": [
+                "headless",
+                "disable-gpu",
+                "disable-extensions"
+            ],
+            "mobileEmulation": {
+                "deviceName": "Pixel 2"
+            }
+        }
+    },
     "environments": [
         "node",
         {
-            "browserName": "chrome"
+            "browserName": "chrome",
+            "fixSessionCapabilities": true
         }
     ],
     "functionalSuites": [

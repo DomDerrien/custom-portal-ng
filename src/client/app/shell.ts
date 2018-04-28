@@ -26,8 +26,10 @@ export class Shell extends PolymerElement {
             [this.$.signOut, 'click', (event: MouseEvent): void => {
                 signOut();
             }],
-            [this.$.addEntity, 'click', (event: MouseEvent): void => {
-                (<CategoryList>(<any>this.$.categoryList)).openAddDlg();
+            [this.$.addCategory, 'click', (event: MouseEvent): void => {
+                if (this.$.categoryList.style.display === 'grid') {
+                    (<CategoryList>(<any>this.$.categoryList)).openAddDlg();
+                }
             }],
             [<any>this, 'show-dialog', (event: CustomEvent): void => { event.stopPropagation(); this._showDialogFeedback(event.detail.text); }],
             [<any>this, 'show-notification', (event: CustomEvent): void => { event.stopPropagation(); this._showToastFeedback(event.detail.text, event.detail.duration); }],
@@ -67,8 +69,10 @@ export class Shell extends PolymerElement {
 
         getLoggedUser().
             then((loggedUser: User): any => {
-                this._addEventListeners();
-
+                if (loggedUser === null) {
+                    this._showDialogFeedback('The verification of your identity failed! Sorry.');
+                    throw new Error('No valid user extracted');
+                }
                 if (loggedUser.picture) {
                     const image = document.createElement('img');
                     image.src = loggedUser.picture;

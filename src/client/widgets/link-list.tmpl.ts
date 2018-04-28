@@ -16,9 +16,9 @@ export let tmpl: HTMLTemplateElement = html`
     
     <iron-ajax id="remote" auto handle-as="json" with-credentials="true"></iron-ajax>
     
-    <paper-dialog id="addDlg" modal role="alertdialog">
+    <paper-dialog id="addLinkDlg" modal role="alertdialog">
         <h2>Add a {{resourceName}}</h2>
-        <iron-form id="addForm">
+        <iron-form id="addLinkForm">
             <form action="{{baseRepoUrl}}{{resourceName}}" method="POST" enctype="application/json">
                 <input type="hidden" name="categoryId" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" required autofocus></paper-input>
@@ -26,14 +26,14 @@ export let tmpl: HTMLTemplateElement = html`
             </form>
         </iron-form>
         <div class="buttons">
-            <paper-button id="addDlgClose">Cancel</paper-button>
-            <paper-button id="addFormSubmit" raised>Add</paper-button>
+            <paper-button id="addLinkDlgClose">Cancel</paper-button>
+            <paper-button id="addLinkFormSubmit" raised>Add</paper-button>
         </div>
     </paper-dialog>
     
-    <paper-dialog id="editDlg" modal role="alertdialog">
+    <paper-dialog id="editLinkDlg" modal role="alertdialog">
         <h2>Edit the {{resourceName}}</h2>
-        <iron-form id="editForm">
+        <iron-form id="editLinkForm">
             <form action="{{baseRepoUrl}}{{resourceName}}/{{activeResource.id}}" method="PUT" enctype="application/json">
                 <input type="hidden" name="updated" value="{{activeResource.updated}}" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern=".+" value="{{activeResource.title}}" required
@@ -46,8 +46,8 @@ export let tmpl: HTMLTemplateElement = html`
             </form>
         </iron-form>
         <div class="buttons">
-            <paper-button id="editDlgClose">Cancel</paper-button>
-            <paper-button id="editFormSubmit" raised>Update</paper-button>
+            <paper-button id="editLinkDlgClose">Cancel</paper-button>
+            <paper-button id="editLinkFormSubmit" raised>Update</paper-button>
         </div>
     </paper-dialog>
 `;

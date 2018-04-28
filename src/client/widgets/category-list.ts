@@ -24,6 +24,8 @@ export class CategoryList extends PolymerElement {
     private activeResource: Resource;
     private resources: Array<Resource>;
     private readonly resourceName: string = 'Category';
+    // @ts-ignore: used only in the template
+    private readonly sortBy: string = '+title';
 
     private _listenerDefs: Array<[HTMLElement, string, EventListener]>;
     private _addDialogStillLocal: boolean = true;
@@ -35,37 +37,37 @@ export class CategoryList extends PolymerElement {
         return [
             [this.$.remote, 'response', ajaxSuccessHandler],
             [this.$.remote, 'error', ajaxErrorHandler],
-            [this.$.addDlgClose, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.addForm).reset();
-                (<PaperDialogElement>this.$.addDlg).close();
+            [this.$.addCategoryDlgClose, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.addCategoryForm).reset();
+                (<PaperDialogElement>this.$.addCategoryDlg).close();
             }],
-            [this.$.addFormSubmit, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.addForm).submit();
+            [this.$.addCategoryFormSubmit, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.addCategoryForm).submit();
             }],
-            [this.$.addForm, 'iron-form-presubmit', (event: IronFormEvent): void => {
+            [this.$.addCategoryForm, 'iron-form-presubmit', (event: IronFormEvent): void => {
                 const request: IronAjaxElement = event.target.request;
                 request.method = 'POST';
                 request.body.positionIdx = Number(request.body.positionIdx);
             }],
-            [this.$.addForm, 'iron-form-response', ajaxSuccessHandler],
-            [this.$.addForm, 'iron-form-error', ajaxErrorHandler],
+            [this.$.addCategoryForm, 'iron-form-response', ajaxSuccessHandler],
+            [this.$.addCategoryForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'edit-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
                 this.activeResource = event.detail.resource;
                 if (this._editDialogStillLocal) {
-                    document.querySelector('body').appendChild(this.$.editDlg);
+                    document.querySelector('body').appendChild(this.$.editCategoryDlg);
                     this._editDialogStillLocal = false;
                 }
-                (<PaperDialogElement>this.$.editDlg).open();
+                (<PaperDialogElement>this.$.editCategoryDlg).open();
             }],
-            [this.$.editDlgClose, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.editForm).reset();
-                (<PaperDialogElement>this.$.editDlg).close();
+            [this.$.editCategoryDlgClose, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.editCategoryForm).reset();
+                (<PaperDialogElement>this.$.editCategoryDlg).close();
             }],
-            [this.$.editFormSubmit, 'click', (event: MouseEvent): void => {
-                (<IronFormElement>this.$.editForm).submit();
+            [this.$.editCategoryFormSubmit, 'click', (event: MouseEvent): void => {
+                (<IronFormElement>this.$.editCategoryForm).submit();
             }],
-            [this.$.editForm, 'iron-form-presubmit', (event: IronFormEvent): void => {
+            [this.$.editCategoryForm, 'iron-form-presubmit', (event: IronFormEvent): void => {
                 const request: IronAjaxElement = event.target.request;
                 request.method = 'PUT';
                 request.body = request.params;
@@ -73,8 +75,8 @@ export class CategoryList extends PolymerElement {
                 request.body.updated = this.activeResource.updated;
                 request.params = {};
             }],
-            [this.$.editForm, 'iron-form-response', ajaxSuccessHandler],
-            [this.$.editForm, 'iron-form-error', ajaxErrorHandler],
+            [this.$.editCategoryForm, 'iron-form-response', ajaxSuccessHandler],
+            [this.$.editCategoryForm, 'iron-form-error', ajaxErrorHandler],
             [<any>this, 'delete-resource', (event: CustomEvent): void => {
                 event.stopPropagation();
                 this.activeResource = event.detail.resource;
@@ -127,10 +129,10 @@ export class CategoryList extends PolymerElement {
 
     public openAddDlg(): void {
         if (this._addDialogStillLocal) {
-            document.querySelector('body').appendChild(this.$.addDlg);
+            document.querySelector('body').appendChild(this.$.addCategoryDlg);
             this._addDialogStillLocal = false;
         }
-        (<PaperDialogElement>this.$.addDlg).open();
+        (<PaperDialogElement>this.$.addCategoryDlg).open();
     }
 
     private _processAjaxResponse(event: IronAjaxEvent): void {
@@ -149,23 +151,17 @@ export class CategoryList extends PolymerElement {
                 break;
             }
             case 'POST': {
-                (<PaperDialogElement>this.$.addDlg).close();
+                (<PaperDialogElement>this.$.addCategoryDlg).close();
                 this.refresh();
                 break;
             }
             case 'PUT': {
-                (<PaperDialogElement>this.$.editDlg).close();
-                const list: { items: Array<Resource> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.activeResource);
-                list.items.splice(idx, 1, this.activeResource);
-                list.items = list.items.slice();
+                (<PaperDialogElement>this.$.editCategoryDlg).close();
+                this.refresh();
                 break;
             }
             case 'DELETE': {
-                const list: { items: Array<Resource> } = <any>this.$.list;
-                const idx: number = list.items.indexOf(this.activeResource);
-                list.items.splice(idx, 1);
-                list.items = list.items.slice();
+                this.refresh();
                 break;
             }
         }

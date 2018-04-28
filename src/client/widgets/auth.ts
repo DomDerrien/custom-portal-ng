@@ -172,35 +172,42 @@ export class AuthenticationController extends PolymerElement {
                 (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
 
                 this.$.googleLoginBtn.style.display = 'block';
-                window.gapi.load('auth2', () => {
-                    // For scopes, look at: https://developers.google.com/identity/protocols/googlescopes
-                    // - email
-                    // - profile
-                    // - https://www.googleapis.com/auth/calendar.readonly
-                    // - https://www.googleapis.com/auth/cloud-platform // Cloud Tasks
-                    // - https://www.googleapis.com/auth/drive.readonly
-                    // - https://www.googleapis.com/auth/fitness.activity.write
-                    // - https://www.googleapis.com/auth/gmail.readonly
-                    // - https://www.googleapis.com/auth/urlshortener
-                    // - https://www.googleapis.com/auth/cloud-translation
-                    // - https://www.googleapis.com/auth/youtube.readonly
+                if (window.location.hash.startsWith('#automaticTests-')) {
+                    this.$.googleLoginBtn.addEventListener('click', (event: Event): void => {
+                        this._useGoogleIdTokenForAuth(window.location.hash);
+                    }, { once: true });
+                }
+                else {
+                    window.gapi.load('auth2', () => {
+                        // For scopes, look at: https://developers.google.com/identity/protocols/googlescopes
+                        // - email
+                        // - profile
+                        // - https://www.googleapis.com/auth/calendar.readonly
+                        // - https://www.googleapis.com/auth/cloud-platform // Cloud Tasks
+                        // - https://www.googleapis.com/auth/drive.readonly
+                        // - https://www.googleapis.com/auth/fitness.activity.write
+                        // - https://www.googleapis.com/auth/gmail.readonly
+                        // - https://www.googleapis.com/auth/urlshortener
+                        // - https://www.googleapis.com/auth/cloud-translation
+                        // - https://www.googleapis.com/auth/youtube.readonly
 
-                    // For incremental authorization: https://developers.google.com/identity/protocols/OAuth2UserAgent#incrementalAuth
+                        // For incremental authorization: https://developers.google.com/identity/protocols/OAuth2UserAgent#incrementalAuth
 
-                    const auth2Lib = window.gapi.auth2.init({
-                        client_id: SUPPORTED_ID_TOKEN_PROVIDERS[0].clientId,
-                        fetch_basic_profile: true, // Otherwise the ticked won't have the user's profile and the on-the-fly user account creation will fail server-side
-                        scope: 'profile'
-                    });
-                    auth2Lib.attachClickHandler(this.$.googleLoginBtn, {},
-                        (googleUser: { getAuthResponse: () => { id_token: string } }) => {
-                            this._useGoogleIdTokenForAuth(googleUser.getAuthResponse().id_token);
-                        },
-                        (error: any) => {
-                            const message: string = `This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`;
-                            (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
+                        const auth2Lib = window.gapi.auth2.init({
+                            client_id: SUPPORTED_ID_TOKEN_PROVIDERS[0].clientId,
+                            fetch_basic_profile: true, // Otherwise the ticked won't have the user's profile and the on-the-fly user account creation will fail server-side
+                            scope: 'profile'
                         });
-                });
+                        auth2Lib.attachClickHandler(this.$.googleLoginBtn, {},
+                            (googleUser: { getAuthResponse: () => { id_token: string } }) => {
+                                this._useGoogleIdTokenForAuth(googleUser.getAuthResponse().id_token);
+                            },
+                            (error: any) => {
+                                const message: string = `This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`;
+                                (<any>this).dispatchEvent(new CustomEvent('show-dialog', { bubbles: true, composed: true, detail: { text: message } }));
+                            });
+                    });
+                }
             }
             else if (error.type === 'userCanceled') {
                 const message: string = `This application requires a valid login to enable its features!<br/>Please, visit us again when you accept to share a unique identity.`;

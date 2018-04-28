@@ -14,44 +14,14 @@ export let tmpl: HTMLTemplateElement = html`
     <style is="custom-style">
         :host {
             display: grid;
-            padding: 20px;
-            grid-gap: 20px;
-            grid-template-columns: repeat(4, 1fr);
+            padding: 1rem;
+            grid-gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             grid-auto-rows: minmax(100px, auto);
         }
     
         :host>.item {
             min-width: 260px;
-        }
-    
-        @media (max-width: 2200px) {
-            :host {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-    
-        @media (max-width: 1800px) {
-            :host {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-    
-        @media (max-width: 1400px) {
-            :host {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-    
-        @media (max-width: 1000px) {
-            :host {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    
-        @media (max-width: 600px) {
-            :host {
-                grid-template-columns: repeat(1, 1fr);
-            }
         }
     </style>
     
@@ -63,9 +33,9 @@ export let tmpl: HTMLTemplateElement = html`
     
     <iron-ajax id="remote" auto handle-as="json" with-credentials="true"></iron-ajax>
     
-    <paper-dialog id="addDlg" modal role="alertdialog">
+    <paper-dialog id="addCategoryDlg" modal role="alertdialog">
         <h2>Add a {{resourceName}}</h2>
-        <iron-form id="addForm">
+        <iron-form id="addCategoryForm">
             <form action="{{baseRepoUrl}}{{resourceName}}" method="POST" enctype="application/json">
                 <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû :-]*" required autofocus></paper-input>
                 <div style="display: grid; grid-gap: 20px; grid-template-columns: 60px 1fr;">
@@ -83,14 +53,14 @@ export let tmpl: HTMLTemplateElement = html`
             </form>
         </iron-form>
         <div class="buttons">
-            <paper-button id="addDlgClose">Cancel</paper-button>
-            <paper-button id="addFormSubmit" raised>Add</paper-button>
+            <paper-button id="addCategoryDlgClose">Cancel</paper-button>
+            <paper-button id="addCategoryFormSubmit" raised>Add</paper-button>
         </div>
     </paper-dialog>
     
-    <paper-dialog id="editDlg" modal role="alertdialog">
+    <paper-dialog id="editCategoryDlg" modal role="alertdialog">
         <h2>Edit the {{resourceName}}</h2>
-        <iron-form id="editForm">
+        <iron-form id="editCategoryForm">
             <form action="{{baseRepoUrl}}{{resourceName}}/{{activeResource.id}}" method="PUT" enctype="application/json">
                 <input type="hidden" name="updated" value="{{activeResource.updated}}" />
                 <paper-input name="title" type="text" label="Title" auto-validate pattern="[A-Z][A-Za-z0-9ÀÉÈÊàéèêëôöüû :-]*" value="{{activeResource.title}}"
@@ -110,8 +80,8 @@ export let tmpl: HTMLTemplateElement = html`
             </form>
         </iron-form>
         <div class="buttons">
-            <paper-button id="editDlgClose">Cancel</paper-button>
-            <paper-button id="editFormSubmit" raised>Update</paper-button>
+            <paper-button id="editCategoryDlgClose">Cancel</paper-button>
+            <paper-button id="editCategoryFormSubmit" raised>Update</paper-button>
         </div>
     </paper-dialog>
 `;

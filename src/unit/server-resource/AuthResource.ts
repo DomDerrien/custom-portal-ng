@@ -13,6 +13,7 @@ import { VerifyIdTokenOptions } from 'google-auth-library/build/src/auth/oauth2c
 const { suite, test, beforeEach, afterEach } = intern.getInterface('tdd');
 const { assert } = intern.getPlugin('chai');
 import { stub, SinonStub } from 'sinon';
+import { ServerErrorException } from '../../server/exception/ServerErrorException';
 
 suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): void => {
     let resource: AuthResource;
@@ -128,7 +129,51 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         });
     });
 
+    suite('generateSessionToken()', (): void => {
+        test('w/ userId', (): void => {
+            // @ts-ignore: access to private method
+            assert.isTrue(/--\d+/.test(resource.generateSessionToken(123, null)));
+        });
+        test('w/ short idToken', (): void => {
+            // @ts-ignore: access to private method
+            assert.strictEqual(resource.generateSessionToken(null, 'abc'), 'abc');
+        });
+        test('w/ long idToken', (): void => {
+            // @ts-ignore: access to private method
+            assert.strictEqual(resource.generateSessionToken(null, 'abcdefghi-abcdefghi-abcdefghi-abcdefghi-abcdefghi-'), 'i-abcdefghi-abcdefghi-abcdefghi-');
+        });
+        test('w/o valid parameters', (): void => {
+            // @ts-ignore: access to private method
+            assert.throw(resource.generateSessionToken, ServerErrorException);
+        });
+    });
+
     suite('getIdTokenValidator()', (): void => {
+        test('With the test account information', async (): Promise<void> => {
+            const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX;
+            const request: express.Request = <express.Request>{ body: { idToken: '#automaticTests-' + testAccountSuffix } };
+            const user: User = Object.assign(new User(), { id: AuthResource.TEST_ACCOUNT_ID, email: 'test@mail.com' });
+            // @ts-ignore: access to private attribute
+            const getStub: SinonStub = stub(resource.userService, 'get');
+            getStub.withArgs(AuthResource.TEST_ACCOUNT_ID, User.Internal).returns(Promise.resolve(user));
+            // @ts-ignore: access to private method
+            const generateSessionTokenStub = stub(resource, 'generateSessionToken');
+            generateSessionTokenStub.withArgs(AuthResource.TEST_ACCOUNT_ID, null).returns('--testToken');
+            // @ts-ignore: access to private attribute
+            const updateStub: SinonStub = stub(resource.userService, 'update');
+            updateStub.withArgs(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: '--testToken' }), User.Internal).returns(Promise.resolve(AuthResource.TEST_ACCOUNT_ID));
+            // @ts-ignore: access to private method
+            const setupResponseParamsStub: SinonStub = stub(resource, 'setupResponseParams');
+
+            // @ts-ignore: access to private method
+            const validator: (request: express.Request, response: express.Response) => Promise<void> = resource.getIdTokenValidator();
+            await validator(request, response);
+
+            assert.isTrue(getStub.calledOnce);
+            assert.isTrue(generateSessionTokenStub.calledOnce);
+            assert.isTrue(updateStub.calledOnce);
+            assert.isTrue(setupResponseParamsStub.calledOnceWithExactly(response, AuthResource.TEST_ACCOUNT_ID, '--testToken', true));
+        });
         test('Existing user', async (): Promise<void> => {
             const request: express.Request = <express.Request>{ body: { idToken: 'token' } };
             const token: TokenPayload = <TokenPayload>{ email: 'test@mail.com' };
@@ -372,7 +417,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const payload: TokenPayload = <TokenPayload>{
                 // @ts-ignore: access to private attribute
                 aud: resource.CLIENT_ID,
-                exp: new Date(new Date().getTime() - 5 * 60 * 1000).getTime()
+                exp: new Date().getTime() / 1000 - 5 * 60
             };
             getPayloadStub.withArgs().returns(payload);
 
