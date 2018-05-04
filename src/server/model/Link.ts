@@ -12,5 +12,6 @@ export class Link extends Parent {
     public href: string;
     @readOnly() public categoryId: number;
     public faviconUrl?: string;
+    public faviconDataUri?: string;
     public accessKey?: string;
 }

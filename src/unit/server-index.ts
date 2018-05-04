@@ -314,7 +314,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
             setStub.withArgs('Content-Type', 'application/octet-stream').returns(response);
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method
@@ -346,7 +346,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const toLastModifiedFormatStub: SinonStub = stub(server, 'toLastModifiedFormat');
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method
@@ -382,7 +382,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
             setStub.withArgs('Content-Type', 'application/javascript').returns(response);
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method
@@ -420,7 +420,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
             setStub.withArgs('Content-Type', 'application/octet-stream').returns(response);
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method
@@ -452,7 +452,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const toLastModifiedFormatStub: SinonStub = stub(server, 'toLastModifiedFormat');
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method
@@ -490,7 +490,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
             const setStub = stub(response, 'set');
             setStub.withArgs('Content-Type', 'application/javascript').returns(response);
-            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=900', 'Last-Modified': 'thisDate' }).returns(response);
+            setStub.withArgs({ 'Cache-Control': 'public, immutable, max-age=2678400', 'Last-Modified': 'thisDate' }).returns(response);
             const sendStub = stub(response, 'send');
 
             // @ts-ignore: access to private method

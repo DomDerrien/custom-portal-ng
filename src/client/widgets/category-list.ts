@@ -143,11 +143,12 @@ export class CategoryList extends PolymerElement {
 
         switch (requestMethod) {
             case 'GET': {
-                this.resources = Array.isArray(event.detail.response) ? event.detail.response : [];
-                if (this.resources.length === 0) {
+                const resources: Array<Resource> = Array.isArray(event.detail.response) ? event.detail.response : [];
+                if (resources.length === 0) {
                     const message: string = `No ${this.resourceName} data retrieved!`;
                     (<any>this).dispatchEvent(new CustomEvent('show-notification', { bubbles: true, composed: true, detail: { text: message } }));
                 }
+                this.resources = resources;
                 break;
             }
             case 'POST': {

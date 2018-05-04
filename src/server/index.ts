@@ -79,14 +79,14 @@ export class Server {
             immutable: true,
             index: false,
             lastModified: true,
-            maxAge: 15 * 60 * 1000,
+            maxAge: 31 * 24 * 60 * 60 * 1000,
             redirect: false
         };
         const dir: string = this.getServerDirectory();
         // this.expressApp.use('/app', this.expressStatic(dir + '/../client/app', staticOptions));
         this.expressApp.use('/exception', this.expressStatic(dir + '/../client/exception', staticOptions));
-        this.expressApp.use('/fonts', this.expressStatic(dir + '/../../src/client/fonts', Object.assign({}, staticOptions, { maxAge: 30000000 })));
-        this.expressApp.use('/images', this.expressStatic(dir + '/../../src/client/images', Object.assign({}, staticOptions, { maxAge: 30000000 })));
+        this.expressApp.use('/fonts', this.expressStatic(dir + '/../../src/client/fonts', staticOptions));
+        this.expressApp.use('/images', this.expressStatic(dir + '/../../src/client/images', staticOptions));
         this.expressApp.use('/model', this.expressStatic(dir + '/../client/model', staticOptions));
         // this.expressApp.use('/widgets', this.expressStatic(dir + '/../client/widgets', staticOptions));
     }
@@ -148,7 +148,7 @@ export class Server {
             content = this.replaceNodeImports(url, content, '@polymer'); // Just one shortcut to process in the application files
         }
         const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (31 * 24 * 60 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
     }
 
     private processNodeImportsInPolymer(request: express.Request, response: express.Response): void {
@@ -169,7 +169,7 @@ export class Server {
             }
         }
         const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (15 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (31 * 24 * 60 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
     }
 
     private handleAnyRemainingRequest(request: express.Request, response: express.Response): void {

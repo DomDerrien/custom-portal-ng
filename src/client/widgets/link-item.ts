@@ -70,7 +70,10 @@ export class LinkItem extends PolymerElement {
 
     protected _resourceChanged(entity: Resource, oldEntity: Resource): void {
         // Set the favicon url
-        if (this.resource.faviconUrl) {
+        if (this.resource.faviconDataUri) {
+            (<HTMLImageElement>this.$.favicon).src = this.resource.faviconDataUri;
+        }
+        else if (this.resource.faviconUrl) {
             (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;
         }
         else if (this.resource.href) {
@@ -80,7 +83,8 @@ export class LinkItem extends PolymerElement {
                 domain = domain.substring(0, slashIdx);
             }
             if (domain.indexOf('localhost') === -1 && /^[a-z\.-]+$/.test(domain)) {
-                (<HTMLImageElement>this.$.favicon).src = 'https://www.google.com/s2/favicons?domain=' + domain;
+                this.resource.faviconUrl = 'https://www.google.com/s2/favicons?domain=' + domain;
+                (<HTMLImageElement>this.$.favicon).src = this.resource.faviconUrl;
             }
         }
     }
