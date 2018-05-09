@@ -64,13 +64,19 @@ export const getLoggedUser = (): Promise<User> => {
 
 export const signOut = async (): Promise<void> => {
     if (loggedUser) {
-        googleYoloController.disableAutoSignIn().then(() => {
+        googleYoloController.disableAutoSignIn().then((): void => {
             const auth2Controller = window.gapi.auth2 ? window.gapi.auth2.getAuthInstance() : null;
             if (auth2Controller) {
                 auth2Controller.signOut();
             }
-            return Promise.resolve();
-        }).then(() => {
+        }).then((): Promise<Response> => fetch(
+            '/api/v1/Auth',
+            {
+                credentials: 'same-origin',
+                cache: 'no-cache',
+                method: 'DELETE'
+            }
+        )).then((): void => {
             window.location.reload();
         });
     }
@@ -107,17 +113,20 @@ export class AuthenticationController extends PolymerElement {
 
     private async _useGoogleIdTokenForAuth(idToken: string): Promise<User> {
         // A Google Account is retrieved. Since Google supports ID token responses,  you can use the token to sign in instead of initiating the Google sign-in flow.
-        const response: Response = await fetch('/api/v1/Auth', {
-            body: `{"idToken":"${idToken}"}`,
-            credentials: 'same-origin',
-            cache: 'no-cache',
-            headers: {
-                'content-type': 'application/json'
-            },
-            method: 'POST'
-        });
+        const response: Response = await fetch(
+            '/api/v1/Auth',
+            {
+                body: `{"idToken":"${idToken}"}`,
+                credentials: 'same-origin',
+                cache: 'no-cache',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                method: 'POST'
+            }
+        );
         if (response.status === 200 || response.status === 201) {
-            const loggedUserLocation = response.headers.get('Location');
+            const loggedUserLocation: string = response.headers.get('Location');
             this._saveLoggedUser(await this._getUser(loggedUserLocation));
         }
         else {

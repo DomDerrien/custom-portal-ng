@@ -83,10 +83,10 @@ export class GoogleDatastoreDao<T extends Model> extends BaseDao<T> {
         if (options.idOnly === true) {
             query.select('__key__');
         }
-        if (options.rangeStart) {
+        if (options.rangeStart !== undefined) {
             query.offset(options.rangeStart);
         }
-        if (options.rangeEnd) {
+        if (options.rangeEnd !== undefined) {
             query.limit(options.rangeEnd - (options.rangeStart || 0) + 1);
         }
         return query;

@@ -68,22 +68,96 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
     test('getRouter()', (): void => {
         const idTokenValidator: (...handlers: RequestHandler[]) => Promise<void> = () => { return null; };
+        const logOutProcessor: (...handlers: RequestHandler[]) => Promise<void> = () => { return null; };
         // @ts-ignore: access to private method
         const getIdTokenValidatorStub: SinonStub = stub(resource, 'getIdTokenValidator');
         getIdTokenValidatorStub.withArgs().returns(idTokenValidator);
+        // @ts-ignore: access to private method
+        const getLogOutProcessorStub: SinonStub = stub(resource, 'getLogOutProcessor');
+        getLogOutProcessorStub.withArgs().returns(logOutProcessor);
         const Router: express.Router = <express.Router>{
-            post(path: string | RegExp | Array<string | RegExp>, ...handlers: RequestHandler[]): void { }
+            post(path: string | RegExp | Array<string | RegExp>, ...handlers: RequestHandler[]): void { },
+            delete(path: string | RegExp | Array<string | RegExp>, ...handlers: RequestHandler[]): void { }
         }
         const RouterStub: SinonStub = stub(express, 'Router');
         RouterStub.withArgs().returns(Router);
         const postStub: SinonStub = stub(Router, 'post');
+        const deleteStub: SinonStub = stub(Router, 'delete');
 
         assert.strictEqual(resource.getRouter(), Router);
 
         assert.isTrue(postStub.calledOnceWithExactly('/api/v1/Auth/', idTokenValidator));
+        assert.isTrue(deleteStub.calledOnceWithExactly('/api/v1/Auth/', logOutProcessor));
         getIdTokenValidatorStub.restore();
         RouterStub.restore();
         postStub.restore();
+    });
+
+    suite('getLogOutProcessor()', (): void => {
+        test('w/o logged user', async (): Promise<void> => {
+            const statusStub: SinonStub = stub(response, 'status');
+            statusStub.withArgs(401).returns(response);
+            const contentTypeStub: SinonStub = stub(response, 'contentType');
+            contentTypeStub.withArgs('text/plain').returns(response);
+            const sendStub: SinonStub = stub(response, 'send');
+            sendStub.withArgs('Rejected authorization sign-off!n').returns(response);
+
+            const getLoggedUserStub: SinonStub = stub(resource, 'getLoggedUser');
+            const request: express.Request = <express.Request>{};
+            getLoggedUserStub.withArgs(request).returns(null);
+
+            // @ts-ignore: access to private method
+            const processor: (request: express.Request, response: express.Response) => Promise<void> = resource.getLogOutProcessor();
+            await processor(request, response);
+
+            assert.isTrue(statusStub.calledOnce);
+            assert.isTrue(contentTypeStub.calledOnce);
+            assert.isTrue(sendStub.calledOnce);
+            assert.isTrue(getLoggedUserStub.calledOnce);
+            statusStub.restore();
+            contentTypeStub.restore();
+            sendStub.restore();
+            getLoggedUserStub.restore();
+        });
+        test('w/ regular logged user', async (): Promise<void> => {
+            const now: number = 987654321;
+            const nowStub: SinonStub = stub(Date, 'now');
+            nowStub.withArgs().returns(now);
+
+            const cookieStub: SinonStub = stub(response, 'cookie');
+            cookieStub.withArgs('UserId', { expires: now }).returns(response);
+            cookieStub.withArgs('Token', { expires: now }).returns(response);
+            const contentTypeStub: SinonStub = stub(response, 'contentType');
+            contentTypeStub.withArgs('text/plain').returns(response);
+            const sendStatusStub: SinonStub = stub(response, 'sendStatus');
+            sendStatusStub.withArgs(200).returns(response);
+
+            const getLoggedUserStub: SinonStub = stub(resource, 'getLoggedUser');
+            const request: express.Request = <express.Request>{};
+            const loggedUser: User = Object.assign(new User(), { id: 12345, sessionToken: '--test--token--' });
+            getLoggedUserStub.withArgs(request).returns(loggedUser);
+
+            // @ts-ignore: access to private attribute
+            const updateStub: SinonStub = stub(resource.userService, 'update');
+            updateStub.withArgs(12345, { id: 12345, sessionToken: '--' }, User.Internal).returns(Promise.resolve([12345]));
+
+            // @ts-ignore: access to private method
+            const processor: (request: express.Request, response: express.Response) => Promise<void> = resource.getLogOutProcessor();
+            await processor(request, response);
+
+            assert.isTrue(nowStub.calledOnce);
+            assert.isTrue(cookieStub.calledTwice);
+            assert.isTrue(contentTypeStub.calledOnce);
+            assert.isTrue(sendStatusStub.calledOnce);
+            assert.isTrue(getLoggedUserStub.calledOnce);
+            assert.isTrue(updateStub.calledOnce);
+            nowStub.restore();
+            cookieStub.restore();
+            contentTypeStub.restore();
+            sendStatusStub.restore();
+            getLoggedUserStub.restore();
+            updateStub.restore();
+        });
     });
 
     suite('setupResponseParams()', (): void => {
@@ -130,9 +204,27 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
     });
 
     suite('generateSessionToken()', (): void => {
-        test('w/ userId', (): void => {
+        test('w/ userId I', (): void => {
             // @ts-ignore: access to private method
-            assert.isTrue(/--\d+/.test(resource.generateSessionToken(123, null)));
+            assert.isTrue(/--\d+--\d+--/.test(resource.generateSessionToken(123, null)));
+        });
+        test('w/ userId II', (): void => {
+            const now: number = ((2 * 24 + 9) * 60 + 55) * 60 * 1000; // second day before noon
+            const nowStub: SinonStub = stub(Date, 'now');
+            nowStub.withArgs().returns(now);
+            // @ts-ignore: access to private method
+            assert.strictEqual(resource.generateSessionToken(123, null), '--' + AuthResource.TEST_ACCOUNT_ID + '--2--');
+            assert.isTrue(nowStub.calledOnce);
+            nowStub.restore();
+        });
+        test('w/ userId III', (): void => {
+            const now: number = ((2 * 24 + 15) * 60 + 25) * 60 * 1000; // second day after noon
+            const nowStub: SinonStub = stub(Date, 'now');
+            nowStub.withArgs().returns(now);
+            // @ts-ignore: access to private method
+            assert.strictEqual(resource.generateSessionToken(123, null), '--' + AuthResource.TEST_ACCOUNT_ID + '--3--');
+            assert.isTrue(nowStub.calledOnce);
+            nowStub.restore();
         });
         test('w/ short idToken', (): void => {
             // @ts-ignore: access to private method
@@ -149,10 +241,10 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
     });
 
     suite('getIdTokenValidator()', (): void => {
-        test('With the test account information', async (): Promise<void> => {
+        test('With the test account information not logged in', async (): Promise<void> => {
             const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX;
             const request: express.Request = <express.Request>{ body: { idToken: '#automaticTests-' + testAccountSuffix } };
-            const user: User = Object.assign(new User(), { id: AuthResource.TEST_ACCOUNT_ID, email: 'test@mail.com' });
+            const user: User = Object.assign(new User(), { id: AuthResource.TEST_ACCOUNT_ID, name: 'Tester', email: 'test@mail.com', sessionToken: '--' });
             // @ts-ignore: access to private attribute
             const getStub: SinonStub = stub(resource.userService, 'get');
             getStub.withArgs(AuthResource.TEST_ACCOUNT_ID, User.Internal).returns(Promise.resolve(user));
@@ -161,7 +253,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             generateSessionTokenStub.withArgs(AuthResource.TEST_ACCOUNT_ID, null).returns('--testToken');
             // @ts-ignore: access to private attribute
             const updateStub: SinonStub = stub(resource.userService, 'update');
-            updateStub.withArgs(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: '--testToken' }), User.Internal).returns(Promise.resolve(AuthResource.TEST_ACCOUNT_ID));
+            updateStub.withArgs(AuthResource.TEST_ACCOUNT_ID, Object.assign(new User(), user, { sessionToken: '--testToken' }), User.Internal).returns(Promise.resolve(AuthResource.TEST_ACCOUNT_ID));
             // @ts-ignore: access to private method
             const setupResponseParamsStub: SinonStub = stub(resource, 'setupResponseParams');
 
@@ -172,6 +264,30 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             assert.isTrue(getStub.calledOnce);
             assert.isTrue(generateSessionTokenStub.calledOnce);
             assert.isTrue(updateStub.calledOnce);
+            assert.isTrue(setupResponseParamsStub.calledOnceWithExactly(response, AuthResource.TEST_ACCOUNT_ID, '--testToken', true));
+        });
+        test('With the test account information already logged in', async (): Promise<void> => {
+            const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX;
+            const request: express.Request = <express.Request>{ body: { idToken: '#automaticTests-' + testAccountSuffix } };
+            const user: User = Object.assign(new User(), { id: AuthResource.TEST_ACCOUNT_ID, name: 'Tester', email: 'test@mail.com', sessionToken: '--testToken' });
+            // @ts-ignore: access to private attribute
+            const getStub: SinonStub = stub(resource.userService, 'get');
+            getStub.withArgs(AuthResource.TEST_ACCOUNT_ID, User.Internal).returns(Promise.resolve(user));
+            // @ts-ignore: access to private method
+            const generateSessionTokenStub = stub(resource, 'generateSessionToken');
+            generateSessionTokenStub.withArgs(AuthResource.TEST_ACCOUNT_ID, null).returns('--testToken');
+            // @ts-ignore: access to private attribute
+            const updateStub: SinonStub = stub(resource.userService, 'update');
+            // @ts-ignore: access to private method
+            const setupResponseParamsStub: SinonStub = stub(resource, 'setupResponseParams');
+
+            // @ts-ignore: access to private method
+            const validator: (request: express.Request, response: express.Response) => Promise<void> = resource.getIdTokenValidator();
+            await validator(request, response);
+
+            assert.isTrue(getStub.calledOnce);
+            assert.isTrue(generateSessionTokenStub.calledOnce);
+            assert.isTrue(updateStub.notCalled);
             assert.isTrue(setupResponseParamsStub.calledOnceWithExactly(response, AuthResource.TEST_ACCOUNT_ID, '--testToken', true));
         });
         test('Existing user', async (): Promise<void> => {
@@ -309,7 +425,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
     suite('getLoggedUser()', (): void => {
         test('success', async (): Promise<void> => {
-            const request: express.Request = <express.Request>{ cookies: { 'UserId': 12345, 'Token': 'abcde' } };
+            const request: express.Request = <express.Request>{ cookies: { 'UserId': '12345', 'Token': 'abcde' } };
             const user: User = Object.assign(new User(), { id: 12345, sessionToken: 'abcde' });
             // @ts-ignore: access to private attribute
             const getStub: SinonStub = stub(resource.userService, 'get');
@@ -321,7 +437,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             // No need to restore the stubs attached to the resource as it's recycled after each test
         });
         test('failure', async (): Promise<void> => {
-            const request: express.Request = <express.Request>{ cookies: { 'UserId': 12345, 'Token': 'abcde' } };
+            const request: express.Request = <express.Request>{ cookies: { 'UserId': '12345', 'Token': 'abcde' } };
             const user: User = Object.assign(new User(), { id: 12345, sessionToken: 'vwxyz' });
             // @ts-ignore: access to private attribute
             const getStub: SinonStub = stub(resource.userService, 'get');
@@ -331,6 +447,14 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
             assert.isTrue(getStub.calledOnce);
             // No need to restore the stubs attached to the resource as it's recycled after each test
+        });
+        test('no userId nor token', async (): Promise<void> => {
+            const request: express.Request = <express.Request>{ cookies: {} };
+            assert.isNull(await resource.getLoggedUser(request));
+        });
+        test('no token', async (): Promise<void> => {
+            const request: express.Request = <express.Request>{ cookies: { 'UserId': '12345' } };
+            assert.isNull(await resource.getLoggedUser(request));
         });
     });
 

@@ -23,9 +23,7 @@ export class Shell extends PolymerElement {
 
     private _defineListeners(): Array<[HTMLElement, string, EventListener]> {
         return [
-            [this.$.signOut, 'click', (event: MouseEvent): void => {
-                signOut();
-            }],
+            [this.$.signOut, 'click', async (event: MouseEvent): Promise<void> => await signOut()],
             [this.$.addCategory, 'click', (event: MouseEvent): void => {
                 if (this.$.categoryList.style.display === 'grid') {
                     (<CategoryList>(<any>this.$.categoryList)).openAddDlg();

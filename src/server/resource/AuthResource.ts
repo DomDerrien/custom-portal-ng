@@ -5,6 +5,7 @@ import { LoginTicket, TokenPayload } from 'google-auth-library/build/src/auth/lo
 import { UserService } from '../service/UserService';
 import { User } from '../model/User';
 import { ServerErrorException } from '../exception/ServerErrorException';
+import { NotAuthorizedException } from '../exception/NotAuthorizedException';
 
 const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     cityLatLong: 'X-AppEngine-CityLatLong',
@@ -51,24 +52,49 @@ export class AuthResource {
 
         let router: express.Router = express.Router();
         router.post(basePath + '/', this.getIdTokenValidator());
+        router.delete(basePath + '/', this.getLogOutProcessor())
 
         console.log('Ready to serve requests sent to:', basePath);
         return router;
     }
 
+    private getLogOutProcessor(): (request: express.Request, response: express.Response) => Promise<void> {
+        return async (request: express.Request, response: express.Response): Promise<void> => {
+            try {
+                const loggedUser: User = await this.getLoggedUser(request);
+                if (loggedUser === null) {
+                    throw new NotAuthorizedException('Invalid authorization pattern');
+                }
+                await this.userService.update(loggedUser.id, Object.assign(loggedUser, { sessionToken: '--' }), User.Internal);
+                const now: number = Date.now();
+                response.
+                    cookie('UserId', { expires: now }).
+                    cookie('Token', { expires: now }).
+                    contentType('text/plain').
+                    sendStatus(200);
+            }
+            catch (error) {
+                console.log('Logout failed!', error);
+                response.status(401).contentType('text/plain').send('Rejected authorization sign-off!');
+            }
+        };
+    }
+
     private async setupResponseParams(response: express.Response, userId: number, sessionToken: string, newUser: boolean = false): Promise<void> {
         const status: number = newUser ? 201 : 200; // HTTP status: CREATED or OK
-        response.
-            cookie('UserId', userId, { secure: false, httpOnly: true }). // TODO: identify the local dev server for `secure:false`, default being `secure:true`
-            cookie('Token', sessionToken, { secure: false, httpOnly: true }).
-            contentType('text/plain').
-            location('/api/v1/User/' + userId).
-            sendStatus(status);
+        response
+            .cookie('UserId', userId, { secure: false, httpOnly: true }) // TODO: identify the local dev server for `secure:false`, default being `secure:true`
+            .cookie('Token', sessionToken, { secure: false, httpOnly: true })
+            .contentType('text/plain')
+            .location('/api/v1/User/' + userId)
+            .sendStatus(status);
     }
 
     private generateSessionToken(userId: number, googleSessionToken: string): string {
         if (userId) {
-            return '--' + (AuthResource.TEST_ACCOUNT_ID + new Date().getTime() + Math.round(Math.random() * 100000));
+            // Token generated for test purposes: number of the day since epoch, with a switch @ noon
+            const short: number = Math.round(Date.now() / (24 * 60 * 60 * 1000));
+            return '--' + AuthResource.TEST_ACCOUNT_ID + '--' + short + '--';
         }
         if (googleSessionToken) {
             return googleSessionToken.substring(Math.max(0, googleSessionToken.length - 32));
@@ -80,14 +106,14 @@ export class AuthResource {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             try {
                 const idToken: string = request.body.idToken;
-                const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX; // Set by the test script dynamically
+                const testAccountSuffix: string = process.env.TEST_ACCOUNT_SUFFIX;
 
                 if (testAccountSuffix && idToken === ('#automaticTests-' + testAccountSuffix)) {
-                    console.log('Authentication w/ test account:', idToken);
-
                     const user: User = await this.userService.get(AuthResource.TEST_ACCOUNT_ID, User.Internal);
                     const sessionToken: string = this.generateSessionToken(AuthResource.TEST_ACCOUNT_ID, null);
-                    await this.userService.update(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+                    if (user.sessionToken !== sessionToken) {
+                        await this.userService.update(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+                    }
 
                     return this.setupResponseParams(response, AuthResource.TEST_ACCOUNT_ID, sessionToken, true);
                 }
@@ -120,18 +146,23 @@ export class AuthResource {
                 this.setupResponseParams(response, userId, sessionToken, true);
             }
             catch (error) {
-                console.log('Cannot verifiy the Google IdToken', error);
+                console.log('Cannot verify the Google IdToken', error);
                 response.status(401).contentType('text/plain').send('Rejected authorization token!');
             }
         };
     }
 
-    public async getLoggedUser(request: express.Request): Promise<User> {
+    public async getLoggedUser(request: express.Request): Promise<User | null> {
         const userId: number = parseInt(request.cookies['UserId']);
         const sessionToken: string = request.cookies['Token'];
-        const user: User = <User>await this.userService.get(userId, User.Internal);
-        if (user.sessionToken === sessionToken) {
-            return user;
+        if (userId && sessionToken) {
+            try {
+                const user: User = <User>await this.userService.get(userId, User.Internal);
+                if (user.sessionToken === sessionToken) {
+                    return user;
+                }
+            }
+            catch (ex) { }
         }
         return Promise.resolve(null);
     }
