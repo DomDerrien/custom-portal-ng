@@ -167,6 +167,13 @@ export class AuthenticationController extends PolymerElement {
     private async _triggerLoggedUserRetreival(googleYolo: any): Promise<User | null> {
         googleYoloController = googleYolo;
 
+        // Attempt to get the logged user w/ the attached token if any
+        const loggedUser: User = await this._getUser('/api/v1/User/me');
+        if (loggedUser != null) {
+            return this._saveLoggedUser(loggedUser);
+        }
+
+        // Fallback on the automatic sign-in
         return this._automaticSignIn(googleYolo).catch((error: YoloError): Promise<User> => {
             if (error.type === 'noCredentialsAvailable') {
                 return this._oneTapSignIn(googleYolo);
@@ -226,12 +233,12 @@ export class AuthenticationController extends PolymerElement {
         });
     }
 
-    private _saveLoggedUser(user: User): void {
+    private _saveLoggedUser(user: User): User {
         loggedUser = user;
         if (loggedUserPromiseResolver) {
             loggedUserPromiseResolver(user);
-            return;
         }
+        return user;
     }
 }
 

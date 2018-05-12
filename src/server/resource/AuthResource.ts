@@ -6,6 +6,7 @@ import { UserService } from '../service/UserService';
 import { User } from '../model/User';
 import { ServerErrorException } from '../exception/ServerErrorException';
 import { NotAuthorizedException } from '../exception/NotAuthorizedException';
+import { UserCache } from '../utils/UserCache';
 
 const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     cityLatLong: 'X-AppEngine-CityLatLong',
@@ -23,6 +24,7 @@ const GAE_STANDARD_HEADER_NAMES: { [key: string]: string } = {
     isAdmin: 'X-AppEngine-User-Is-Admin',
 }
 
+
 // AuthResource does not extends BaseResource because it does not define operations for a specific resource
 // It does however process one entry point to help authenticating a user. It relies on Google OAuth service.
 // For this entry point, it mimics a BaseResource-like class with the methods `getIntance()` and `getRoute()`.
@@ -33,6 +35,7 @@ export class AuthResource {
     private oauth2Client: OAuth2Client;
     public static readonly TEST_ACCOUNT_ID: number = 5764878782431232; // Test account identifier
     private readonly CLIENT_ID: string = '273389031064-d7cu4dnn3a48kerusgr7k1tnf3i6jj1v.apps.googleusercontent.com';
+    private readonly loggedUserCache: UserCache;
 
     // Factory method
     public static getInstance(): AuthResource {
@@ -45,6 +48,7 @@ export class AuthResource {
     private constructor() {
         this.userService = UserService.getInstance();
         this.oauth2Client = new OAuth2Client(this.CLIENT_ID, '', '');
+        this.loggedUserCache = new UserCache();
     }
 
     public getRouter(): express.Router {
@@ -65,6 +69,7 @@ export class AuthResource {
                 if (loggedUser === null) {
                     throw new NotAuthorizedException('Invalid authorization pattern');
                 }
+                this.loggedUserCache.clear(loggedUser.sessionToken);
                 await this.userService.update(loggedUser.id, Object.assign(loggedUser, { sessionToken: '--' }), User.Internal);
                 const now: number = Date.now();
                 response.
@@ -115,6 +120,7 @@ export class AuthResource {
                         await this.userService.update(AuthResource.TEST_ACCOUNT_ID, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
                     }
 
+                    this.loggedUserCache.set(sessionToken, user);
                     return this.setupResponseParams(response, AuthResource.TEST_ACCOUNT_ID, sessionToken, true);
                 }
 
@@ -126,6 +132,8 @@ export class AuthResource {
                 if (0 < users.length) {
                     const user: User = users[0];
                     const userId: number = await this.userService.update(user.id, Object.assign(user, { sessionToken: sessionToken }), User.Internal);
+
+                    this.loggedUserCache.set(sessionToken, user);
                     return this.setupResponseParams(response, userId, sessionToken);
                 }
 
@@ -143,6 +151,8 @@ export class AuthResource {
                     user.country = <string>request.headers[GAE_STANDARD_HEADER_NAMES.country];
                 }
                 const userId = await this.userService.create(user, User.Internal);
+
+                // Not added to the cache, will be added by a subsequent call
                 this.setupResponseParams(response, userId, sessionToken, true);
             }
             catch (error) {
@@ -156,9 +166,14 @@ export class AuthResource {
         const userId: number = parseInt(request.cookies['UserId']);
         const sessionToken: string = request.cookies['Token'];
         if (userId && sessionToken) {
+            const cachedUser = this.loggedUserCache.get(sessionToken);
+            if (cachedUser && cachedUser.id === Number(userId)) {
+                return cachedUser;
+            }
             try {
                 const user: User = <User>await this.userService.get(userId, User.Internal);
                 if (user.sessionToken === sessionToken) {
+                    this.loggedUserCache.set(sessionToken, user);
                     return user;
                 }
             }

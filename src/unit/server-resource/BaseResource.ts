@@ -111,10 +111,10 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
         assert.isTrue(RouterStub.calledOnce);
         assert.isTrue(getStub.calledTwice);
         assert.isTrue(getStub.calledWithExactly('/api/v1/TestModel/', getSelectProcessor));
-        assert.isTrue(getStub.calledWithExactly('/api/v1/TestModel/:id', getGetProcessor));
+        assert.isTrue(getStub.calledWithExactly('/api/v1/TestModel/:id(\\d+)', getGetProcessor));
         assert.isTrue(postStub.calledOnceWithExactly('/api/v1/TestModel/', getCreateProcessor));
-        assert.isTrue(putStub.calledOnceWithExactly('/api/v1/TestModel/:id', getUpdateProcessor));
-        assert.isTrue(deleteStub.calledOnceWithExactly('/api/v1/TestModel/:id', getDeleteProcessor));
+        assert.isTrue(putStub.calledOnceWithExactly('/api/v1/TestModel/:id(\\d+)', getUpdateProcessor));
+        assert.isTrue(deleteStub.calledOnceWithExactly('/api/v1/TestModel/:id(\\d+)', getDeleteProcessor));
         assert.isTrue(getSelectProcessorStub.calledOnce);
         assert.isTrue(getGetProcessorStub.calledOnce);
         assert.isTrue(getCreateProcessorStub.calledOnce);

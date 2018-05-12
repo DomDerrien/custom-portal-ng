@@ -31,11 +31,11 @@ export class BaseResource<T extends Service<DAO<Model>>> {
         let router: express.Router = express.Router();
         router.get(basePath + '/', this.getSelectProcessor());
         let getProcessor = this.getGetProcessor();
-        router.get(basePath + '/:id', getProcessor);
-        // router.get(basePath + '/:id/*', getProcessor);
+        router.get(basePath + '/:id(\\d+)', getProcessor);
+        // router.get(basePath + '/:id(\\d+)/*', getProcessor);
         router.post(basePath + '/', this.getCreateProcessor());
-        router.put(basePath + '/:id', this.getUpdateProcessor());
-        router.delete(basePath + '/:id', this.getDeleteProcessor());
+        router.put(basePath + '/:id(\\d+)', this.getUpdateProcessor());
+        router.delete(basePath + '/:id(\\d+)', this.getDeleteProcessor());
 
         console.log('Ready to serve requests sent to:', basePath);
         return router;

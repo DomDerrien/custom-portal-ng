@@ -424,7 +424,17 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
     });
 
     suite('getLoggedUser()', (): void => {
-        test('success', async (): Promise<void> => {
+        test('success from cache', async (): Promise<void> => {
+            const request: express.Request = <express.Request>{ cookies: { 'UserId': '12345', 'Token': 'abcde' } };
+            const user: User = Object.assign(new User(), { id: 12345, sessionToken: 'abcde' });
+            // @ts-ignore: access to private attribute
+            resource.loggedUserCache.set('abcde', user);
+
+            assert.strictEqual(await resource.getLoggedUser(request), user);
+
+            // No need to restore the stubs attached to the resource as it's recycled after each test
+        });
+        test('success from datastore', async (): Promise<void> => {
             const request: express.Request = <express.Request>{ cookies: { 'UserId': '12345', 'Token': 'abcde' } };
             const user: User = Object.assign(new User(), { id: 12345, sessionToken: 'abcde' });
             // @ts-ignore: access to private attribute
