@@ -145,7 +145,8 @@ export class Server {
         }
         let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
         if (extension === 'js') {
-            content = this.replaceNodeImports(url, content, '@polymer'); // Just one shortcut to process in the application files
+            content = this.replaceNodeImports(url, content, '@polymer');
+            content = this.replaceNodeImports(url, content, 'lit-html');
         }
         const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
         response.set({ 'Cache-Control': 'public, immutable, max-age=' + (31 * 24 * 60 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
@@ -161,7 +162,7 @@ export class Server {
         }
         const filePath: string = '.' + url;
         let content: string = this.fsAccess.readFileSync(filePath).toString('utf8');
-        const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien'];
+        const nodeLikeModuleNames: Array<string> = ['@polymer', '@webcomponents', '@domderrien', 'lit-html'];
         const needFiltering: boolean = nodeLikeModuleNames.reduce((accumulator: boolean, moduleName: string): boolean => accumulator || -1 < url.indexOf(moduleName), false);
         if (needFiltering) {
             for (let name of nodeLikeModuleNames) {

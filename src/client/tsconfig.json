@@ -11,6 +11,9 @@
         "paths": {
             "@polymer/*": [
                 "node_modules/@polymer/*"
+            ],
+            "lit-html/*": [
+                "node_modules/lit-html/*"
             ]
         }
     },

@@ -23,6 +23,7 @@ export class LinkList extends PolymerElement {
     private readonly baseRepoUrl: string = '/api/v1/';
     private categoryId: string;
     private activeResource: Resource;
+    // @ts-ignore: used only in the template
     private resources: Array<Resource>;
     private readonly resourceName: string = 'Link';
 

@@ -22,6 +22,7 @@ export class CategoryList extends PolymerElement {
 
     private readonly baseRepoUrl: string = '/api/v1/';
     private activeResource: Resource;
+    // @ts-ignore: used only in the template
     private resources: Array<Resource>;
     private readonly resourceName: string = 'Category';
     // @ts-ignore: used only in the template

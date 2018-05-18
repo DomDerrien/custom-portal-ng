@@ -376,7 +376,8 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             statSyncStub.withArgs('./dist/client/thisFile.js').returns({ mtime: 123 });
             // @ts-ignore: access to private method
             const replaceNodeImportsStub: SinonStub = stub(server, 'replaceNodeImports');
-            replaceNodeImportsStub.withArgs('/thisFile.js', 'thisContent', '@polymer').returns('thisCleanContent');
+            replaceNodeImportsStub.withArgs('/thisFile.js', 'thisContent', '@polymer').returns('thisAlmostCleanContent');
+            replaceNodeImportsStub.withArgs('/thisFile.js', 'thisAlmostCleanContent', 'lit-html').returns('thisCleanContent');
             // @ts-ignore: access to private method
             const toLastModifiedFormatStub: SinonStub = stub(server, 'toLastModifiedFormat');
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
@@ -390,7 +391,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
             assert.isTrue(readFileSyncStub.calledOnce);
             assert.isTrue(statSyncStub.calledOnce);
-            assert.isTrue(replaceNodeImportsStub.calledOnce);
+            assert.isTrue(replaceNodeImportsStub.calledTwice);
             assert.isTrue(toLastModifiedFormatStub.calledOnce);
             assert.isTrue(setStub.calledTwice);
             assert.isTrue(sendStub.calledOnceWithExactly('thisCleanContent'));
@@ -484,7 +485,8 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const replaceNodeImportsStub: SinonStub = stub(server, 'replaceNodeImports');
             replaceNodeImportsStub.withArgs('/@polymer/thisFile.js', 'thisContent', '@polymer').returns('thisCleanContent');
             replaceNodeImportsStub.withArgs('/@polymer/thisFile.js', 'thisCleanContent', '@webcomponents').returns('thisMuchCleanerContent');
-            replaceNodeImportsStub.withArgs('/@polymer/thisFile.js', 'thisMuchCleanerContent', '@domderrien').returns('thisFoolProofContent');
+            replaceNodeImportsStub.withArgs('/@polymer/thisFile.js', 'thisMuchCleanerContent', '@domderrien').returns('thisAlmostFoolProofContent');
+            replaceNodeImportsStub.withArgs('/@polymer/thisFile.js', 'thisAlmostFoolProofContent', 'lit-html').returns('thisFoolProofContent');
             // @ts-ignore: access to private method
             const toLastModifiedFormatStub: SinonStub = stub(server, 'toLastModifiedFormat');
             toLastModifiedFormatStub.withArgs(new Date(123)).returns('thisDate');
@@ -498,7 +500,7 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
             assert.isTrue(readFileSyncStub.calledOnce);
             assert.isTrue(statSyncStub.calledOnce);
-            assert.isTrue(replaceNodeImportsStub.calledThrice);
+            assert.strictEqual(replaceNodeImportsStub.callCount, 4);
             assert.isTrue(toLastModifiedFormatStub.calledOnce);
             assert.isTrue(setStub.calledTwice);
             assert.isTrue(sendStub.calledOnceWithExactly('thisFoolProofContent'));
