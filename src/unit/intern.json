@@ -9,7 +9,6 @@
     "coverage": "./dist/server/**/*.js",
     "reporters": [
         {
-            "-name": "pretty",
             "name": "simple"
         },
         {

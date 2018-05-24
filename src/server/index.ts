@@ -30,6 +30,8 @@ declare global {
     }
 }
 
+const cacheMaxAge: number = 31 * 24 * 60 * 60;
+
 export class Server {
     private expressApp: express.Application;
     private expressBodyParser: ExpressBodyParser;
@@ -79,7 +81,7 @@ export class Server {
             immutable: true,
             index: false,
             lastModified: true,
-            maxAge: 31 * 24 * 60 * 60 * 1000,
+            maxAge: cacheMaxAge * 1000,
             redirect: false
         };
         const dir: string = this.getServerDirectory();
@@ -149,7 +151,7 @@ export class Server {
             content = this.replaceNodeImports(url, content, 'lit-html');
         }
         const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (31 * 24 * 60 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (cacheMaxAge), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
     }
 
     private processNodeImportsInPolymer(request: express.Request, response: express.Response): void {
@@ -170,7 +172,7 @@ export class Server {
             }
         }
         const lastModified: Date = new Date(this.fsAccess.statSync(filePath).mtime);
-        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (31 * 24 * 60 * 60), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
+        response.set({ 'Cache-Control': 'public, immutable, max-age=' + (cacheMaxAge), 'Last-Modified': this.toLastModifiedFormat(lastModified) }).send(content);
     }
 
     private handleAnyRemainingRequest(request: express.Request, response: express.Response): void {

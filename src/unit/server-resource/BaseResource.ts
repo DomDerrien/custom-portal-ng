@@ -444,25 +444,29 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             const createStub: SinonStub = stub(resource.service, 'create');
             const entity: TestModel = Object.assign(new TestModel(), { anyAttr: 'anyVal' });
             createStub.withArgs(entity, loggedUser).returns(Promise.resolve(12345));
+            const statusStub: SinonStub = stub(response, 'status');
+            statusStub.withArgs(201).returns(response);
             const contentTypeStub: SinonStub = stub(response, 'contentType');
             contentTypeStub.withArgs('text/plain').returns(response);
             const locationStub: SinonStub = stub(response, 'location');
             locationStub.withArgs('here/12345').returns(response);
-            const sendStatusStub: SinonStub = stub(response, 'sendStatus');
-            sendStatusStub.withArgs(201).returns(response);
+            const sendStub: SinonStub = stub(response, 'send');
+            sendStub.withArgs(12345).returns(response);
 
             // @ts-ignore: access to private method
             const createProcessor: (request: express.Request, response: express.Response) => void = resource.getCreateProcessor();
             await createProcessor(request, response);
 
+            assert.isTrue(statusStub.calledOnce);
             assert.isTrue(getLoggedUserStub.calledOnce);
             assert.isTrue(createStub.calledOnce);
-            assert.isTrue(sendStatusStub.calledOnce);
+            assert.isTrue(sendStub.calledOnce);
             assert.isTrue(contentTypeStub.calledOnce);
             assert.isTrue(locationStub.calledOnce);
+            statusStub.restore();
             getLoggedUserStub.restore();
             createStub.restore();
-            sendStatusStub.restore();
+            sendStub.restore();
             contentTypeStub.restore();
             locationStub.restore();
         });
@@ -675,8 +679,12 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
             // @ts-ignore: access to private attribute
             const deleteStub: SinonStub = stub(resource.service, 'delete');
             deleteStub.withArgs(12345, loggedUser).returns(Promise.resolve());
-            const sendStatusStub: SinonStub = stub(response, 'sendStatus');
-            sendStatusStub.withArgs(200).returns(response);
+            const statusStub: SinonStub = stub(response, 'status');
+            statusStub.withArgs(200).returns(response);
+            const contentTypeStub: SinonStub = stub(response, 'contentType');
+            contentTypeStub.withArgs('text/plain').returns(response);
+            const sendStub: SinonStub = stub(response, 'send');
+            sendStub.withArgs('Deletion completed').returns(response);
 
             // @ts-ignore: access to private method
             const deleteProcessor: (request: express.Request, response: express.Response) => void = resource.getDeleteProcessor();
@@ -684,10 +692,14 @@ suite(__filename.substring(__filename.indexOf('/unit/') + '/unit/'.length), (): 
 
             assert.isTrue(getLoggedUserStub.calledOnce);
             assert.isTrue(deleteStub.calledOnce);
-            assert.isTrue(sendStatusStub.calledOnce);
+            assert.isTrue(statusStub.calledOnce);
+            assert.isTrue(contentTypeStub.calledOnce);
+            assert.isTrue(sendStub.calledOnce);
             getLoggedUserStub.restore();
             deleteStub.restore();
-            sendStatusStub.restore();
+            statusStub.restore();
+            contentTypeStub.restore();
+            sendStub.restore();
         });
         test('service failure', async (): Promise<void> => {
             const loggedUser: User = <User>{};

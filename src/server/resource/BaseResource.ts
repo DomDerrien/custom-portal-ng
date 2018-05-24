@@ -56,7 +56,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
                     }
                 }
             }
-            this.service.select(request.query, options, await this.authResource.getLoggedUser(request))
+            return this.service.select(request.query, options, await this.authResource.getLoggedUser(request))
                 .then((entities: Array<Model>): void => {
                     // TODO: Cache-Control header
                     if (entities.length === 0) {
@@ -83,7 +83,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
     private getGetProcessor(): (request: express.Request, response: express.Response) => void {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             const loggedUser: User = await this.authResource.getLoggedUser(request);
-            this.service.get(Number(request.params.id), loggedUser)
+            return this.service.get(Number(request.params.id), loggedUser)
                 .then((entity: Model): void => {
                     // TODO: Cache-Control header
                     response.status(200).contentType('application/json').send(entity);
@@ -101,7 +101,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
             let entity: Model = Object.assign(this.service.modelInstance, request.body);
             this.service.create(entity, await this.authResource.getLoggedUser(request))
                 .then((id: number): void => {
-                    response.contentType('text/plain').location(request.originalUrl + '/' + id).sendStatus(201); // HTTP status: CREATED
+                    response.status(201).contentType('text/plain').location(request.originalUrl + '/' + id).send(id); // HTTP status: CREATED
                 })
                 .catch((error: Error): void => {
                     /// console.log('BaseResource.create() failed with:\n', error)
@@ -115,7 +115,7 @@ export class BaseResource<T extends Service<DAO<Model>>> {
         return async (request: express.Request, response: express.Response): Promise<void> => {
             let entity: Model = Object.assign(this.service.modelInstance, request.body);
             const loggedUser: User = await this.authResource.getLoggedUser(request);
-            this.service.update(Number(request.params.id), entity, loggedUser)
+            return this.service.update(Number(request.params.id), entity, loggedUser)
                 .then((id: number): Promise<void> => {
                     return this.service.get(id, loggedUser).then((entity: Model): void => {
                         // TODO: Cache-Control header
@@ -133,9 +133,9 @@ export class BaseResource<T extends Service<DAO<Model>>> {
 
     private getDeleteProcessor(): (request: express.Request, response: express.Response) => void {
         return async (request: express.Request, response: express.Response): Promise<void> => {
-            this.service.delete(Number(request.params.id), await this.authResource.getLoggedUser(request))
+            return this.service.delete(Number(request.params.id), await this.authResource.getLoggedUser(request))
                 .then((): void => {
-                    response.sendStatus(200); // HTTP status: OK
+                    response.status(200).contentType('text/plain').send('Deletion completed'); // HTTP status: OK
                 })
                 .catch((error: Error): void => {
                     /// console.log('BaseResource.delete() failed with:\n', error)

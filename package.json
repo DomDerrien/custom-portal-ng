@@ -54,12 +54,12 @@
     },
     "scripts": {
         "clean": "rm -rf node_modules coverage dist package-lock.json",
-        "init": "pushd ./src/client/; ln -s ../server/model/ .; ln -s ../server/exception/ .; popd",
+        "init": "mkdir dist; mkdir dist/server; pushd ./src/client/; ln -s ../server/model/ .; ln -s ../server/exception/ .; popd",
         "watch": "concurrently --names 'server,client, unit ,fnctnl' -c 'white.bgBlue,black.bgGreen,black.bgYellow,black.bgMagenta' 'tsc -p ./src/server --watch' 'tsc -p ./src/client --watch' 'tsc -p ./src/unit --watch' 'tsc -p ./src/functional --watch'",
         "dev": "nodemon -r source-map-support/register ./dist/server/index.js --watch ./dist/server",
         "start": "node ./dist/server/index.js",
         "webdriver": "chromedriver --port=4444 --url-base=wd/hub",
-        "test": "intern config=intern-local.json; intern config=intern-remote.json",
+        "test": "intern config=src/unit/intern.json; intern config=src/functional/intern.json",
         "deploy": "gcloud app deploy"
     }
 }
